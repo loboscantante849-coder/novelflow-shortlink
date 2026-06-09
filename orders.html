@@ -288,7 +288,7 @@ function renderSummary() {
 
   // Global dashboard
   let gTotal = 0, gCost = 0, gFee = 0, gProfit = 0, gMr = 0, gIncome = 0;
-  let gReceived = 0, gPending = 0;
+  let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0;
   filtered.forEach(o => {
     const b = calcBreakdown(o.amount, o.creator, o.plan);
     gTotal += o.amount;
@@ -297,16 +297,18 @@ function renderSummary() {
     gProfit += b.profit;
     gMr += b.mrCut;
     gIncome += b.myIncome;
-    if (o.status === '已收货') gReceived += o.amount;
+    if (o.status === '已交付') { gDelivered += o.amount; gDeliveredCount++; }
+    else if (o.status === '已收货') gReceived += o.amount;
     else gPending += o.amount;
   });
 
   html += `<div class="dash-card">
     <div class="dash-title">📊 总览</div>
-    <div class="dash-grid three">
+    <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
       <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${gTotal.toFixed(0)}</div></div>
-      <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${gReceived.toFixed(0)}</div></div>
       <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${gPending.toFixed(0)}</div></div>
+      <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${gReceived.toFixed(0)}</div></div>
+      <div class="dash-item"><div class="dash-label">💰 已交付</div><div class="dash-value" style="color:#6c5ce7">¥${gDelivered.toFixed(0)}</div></div>
     </div>
     <div class="dash-grid" style="margin-top:10px">
       <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${gCost.toFixed(0)}</div></div>
@@ -328,7 +330,7 @@ function renderSummary() {
 
   for (const [creator, list] of Object.entries(groups)) {
     let cTotal = 0, cCost = 0, cFee = 0, cProfit = 0, cMr = 0, cIncome = 0;
-    let cReceived = 0, cPending = 0, cRecCount = 0;
+    let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0;
     list.forEach(o => {
       const b = calcBreakdown(o.amount, o.creator, o.plan);
       cTotal += o.amount;
@@ -337,18 +339,20 @@ function renderSummary() {
       cProfit += b.profit;
       cMr += b.mrCut;
       cIncome += b.myIncome;
-      if (o.status === '已收货') { cReceived += o.amount; cRecCount++; }
+      if (o.status === '已交付') { cDelivered += o.amount; cDeliveredCount++; }
+      else if (o.status === '已收货') { cReceived += o.amount; cRecCount++; }
       else cPending += o.amount;
     });
 
     const feeRate = FEE_RATE[creator] || 0;
 
     html += `<div class="dash-card">
-      <div class="dash-title">👤 ${getDisplayName(creator)} <span style="font-size:11px;color:#888;font-weight:400">手续费${(feeRate*100).toFixed(1)}% | ${cRecCount}/${list.length} 已收货</span></div>
-      <div class="dash-grid three">
+      <div class="dash-title">👤 ${getDisplayName(creator)} <span style="font-size:11px;color:#888;font-weight:400">手续费${(feeRate*100).toFixed(1)}% | 已交付${cDeliveredCount} 已收货${cRecCount} 待收货${list.length-cRecCount-cDeliveredCount}</span></div>
+      <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
         <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${cTotal.toFixed(0)}</div></div>
-        <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${cReceived.toFixed(0)}</div></div>
         <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${cPending.toFixed(0)}</div></div>
+        <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${cReceived.toFixed(0)}</div></div>
+        <div class="dash-item"><div class="dash-label">💰 已交付</div><div class="dash-value" style="color:#6c5ce7">¥${cDelivered.toFixed(0)}</div></div>
       </div>
       <div class="dash-grid" style="margin-top:10px">
         <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${cCost.toFixed(0)}</div></div>
@@ -365,7 +369,7 @@ function renderSummary() {
     html += `<div class="creator-card">`;
     list.forEach(o => {
       const b = calcBreakdown(o.amount, o.creator, o.plan);
-      const statusIcon = o.status === '已收货' ? '✅' : '⏳';
+      const statusIcon = o.status === '已交付' ? '💰' : o.status === '已收货' ? '✅' : '⏳';
       html += `<div class="order-item">
         <div class="order-top">
           <span class="order-plan">${statusIcon} ${o.plan}</span>
@@ -384,10 +388,12 @@ function renderSummary() {
         <div class="order-time">${new Date(o.createdAt).toLocaleString('zh-CN')}</div>
         <div class="status-toggle">
           <label>状态：</label>
-          <select class="status-select" onchange="updateStatus('${o.id}', this.value)">
+          <select class="status-select" onchange="updateStatus('${o.id}', this.value)" ${o.status==='已交付'?'disabled':''}>
             <option value="未收货" ${o.status==='未收货'?'selected':''}>📦 未收货</option>
             <option value="已收货" ${o.status==='已收货'?'selected':''}>✅ 已收货</option>
+            <option value="已交付" ${o.status==='已交付'?'selected':''}>💰 已交付（已分钱）</option>
           </select>
+          ${o.status==='已交付'?'<span style="font-size:11px;color:#00b894;margin-left:4px">🔒 已锁定</span>':''}
         </div>
       </div>`;
     });
@@ -408,6 +414,12 @@ async function loadSummary() {
 }
 
 async function updateStatus(id, status) {
+  const order = orders.find(o => o.id === id);
+  if (order && order.status === '已交付') {
+    showToast('已交付订单不可修改', true);
+    renderSummary();
+    return;
+  }
   try {
     const res = await fetch(API, {
       method: 'PUT',
