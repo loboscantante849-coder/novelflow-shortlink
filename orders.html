@@ -38,8 +38,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
 .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Summary */
-.summary-section { margin-bottom: 16px; }
+/* Dashboard card */
+.dash-card { background: linear-gradient(135deg, #1e1040, #1a1a2e); border-radius: 12px; padding: 16px; border: 1px solid #6c5ce744; margin-bottom: 12px; }
+.dash-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dash-item { background: #0f0f1a; border-radius: 8px; padding: 12px; text-align: center; }
+.dash-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+.dash-value { font-size: 18px; font-weight: 700; }
+.dash-value.gold { color: #ffd700; }
+.dash-value.purple { color: #a29bfe; }
+.dash-value.red { color: #ff6b6b; }
+.dash-value.green { color: #00b894; }
+
+/* Creator card */
 .creator-card { background: #1a1a2e; border-radius: 12px; padding: 16px; border: 1px solid #333; margin-bottom: 12px; }
 .creator-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .creator-name { font-size: 16px; font-weight: 700; color: #fff; }
@@ -52,11 +63,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .order-phone { font-size: 12px; color: #888; }
 .order-time { font-size: 11px; color: #555; margin-top: 4px; }
 
+/* Income breakdown */
+.income-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; color: #aaa; }
+.income-row.highlight { color: #00b894; font-weight: 600; font-size: 13px; }
+
 .status-toggle { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .status-toggle label { font-size: 12px; color: #aaa; }
 .status-select { padding: 4px 8px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 12px; }
-.status-已收货 { color: #00b894; }
-.status-未收货 { color: #fdcb6e; }
 
 .empty { text-align: center; padding: 40px; color: #555; font-size: 14px; }
 
@@ -134,6 +147,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 const API = '/api/orders';
 let orders = [];
 
+// 咸鱼手续费率
+const FEE_RATE = {
+  '波比': 0.016,
+  '周众（孙尚香人柱力）': 0.006,
+  '迷人': 0
+};
+
+// 迷人抽成比例
+const MR_RATE = 0.30;
+
+function calcBreakdown(amount, creator) {
+  const feeRate = FEE_RATE[creator] || 0;
+  const fee = amount * feeRate;
+  const net = amount - fee;
+  const mrCut = net * MR_RATE;
+  const myIncome = net * (1 - MR_RATE);
+  return { fee, feeRate, net, mrCut, myIncome };
+}
+
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   if (tab === 'add') {
@@ -179,7 +211,6 @@ async function submitOrder() {
     });
     if (!res.ok) throw new Error(await res.text());
     showToast('订单提交成功！');
-    // Reset form
     document.getElementById('creator').value = '';
     document.getElementById('phone').value = '';
     document.querySelectorAll('input[name="plan"]').forEach(r => r.checked = false);
@@ -214,21 +245,68 @@ async function loadSummary() {
   });
 
   let html = '';
+
+  // Global dashboard
+  let gTotal = 0, gFee = 0, gMr = 0, gIncome = 0;
+  orders.forEach(o => {
+    const b = calcBreakdown(o.amount, o.creator);
+    gTotal += o.amount;
+    gFee += b.fee;
+    gMr += b.mrCut;
+    gIncome += b.myIncome;
+  });
+
+  html += `<div class="dash-card">
+    <div class="dash-title">📊 总览</div>
+    <div class="dash-grid">
+      <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${gTotal.toFixed(2)}</div></div>
+      <div class="dash-item"><div class="dash-label">咸鱼手续费</div><div class="dash-value red">-¥${gFee.toFixed(2)}</div></div>
+      <div class="dash-item"><div class="dash-label">迷人技术支持(30%)</div><div class="dash-value purple">¥${gMr.toFixed(2)}</div></div>
+      <div class="dash-item"><div class="dash-label">个人收入合计(70%)</div><div class="dash-value green">¥${gIncome.toFixed(2)}</div></div>
+    </div>
+  </div>`;
+
   for (const [creator, list] of Object.entries(groups)) {
-    const total = list.reduce((s, o) => s + o.amount, 0);
+    // Creator dashboard
+    let cTotal = 0, cFee = 0, cMr = 0, cIncome = 0;
     const received = list.filter(o => o.status === '已收货').length;
-    html += `<div class="creator-card">
-      <div class="creator-header">
-        <span class="creator-name">${creator}</span>
-        <span class="creator-total">合计 ¥${total.toFixed(2)} | ${received}/${list.length} 已收货</span>
-      </div>`;
     list.forEach(o => {
+      const b = calcBreakdown(o.amount, o.creator);
+      cTotal += o.amount;
+      cFee += b.fee;
+      cMr += b.mrCut;
+      cIncome += b.myIncome;
+    });
+
+    const feeRate = FEE_RATE[creator] || 0;
+    const feeLabel = creator === '迷人' ? '无手续费' : `咸鱼手续费 ${(feeRate*100).toFixed(1)}%`;
+
+    html += `<div class="dash-card">
+      <div class="dash-title">👤 ${creator} <span style="font-size:11px;color:#888;font-weight:400">${feeLabel} | ${received}/${list.length} 已收货</span></div>
+      <div class="dash-grid">
+        <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${cTotal.toFixed(2)}</div></div>
+        <div class="dash-item"><div class="dash-label">咸鱼手续费</div><div class="dash-value red">-¥${cFee.toFixed(2)}</div></div>
+        <div class="dash-item"><div class="dash-label">迷人技术支持(30%)</div><div class="dash-value purple">¥${cMr.toFixed(2)}</div></div>
+        <div class="dash-item"><div class="dash-label">我的收入(70%)</div><div class="dash-value green">¥${cIncome.toFixed(2)}</div></div>
+      </div>
+    </div>`;
+
+    // Order list
+    html += `<div class="creator-card">`;
+    list.forEach(o => {
+      const b = calcBreakdown(o.amount, o.creator);
       html += `<div class="order-item">
         <div class="order-top">
           <span class="order-plan">${o.plan}</span>
           <span class="order-amount">¥${o.amount.toFixed(2)}</span>
         </div>
         <div class="order-phone">📱 ${o.phone}</div>
+        <div style="margin-top:6px; border-top:1px solid #222; padding-top:6px;">
+          <div class="income-row"><span>咸鱼手续费(${(b.feeRate*100).toFixed(1)}%)</span><span>-¥${b.fee.toFixed(2)}</span></div>
+          <div class="income-row"><span>扣费后净额</span><span>¥${b.net.toFixed(2)}</span></div>
+          <div class="income-row"><span>迷人技术支持(30%)</span><span>-¥${b.mrCut.toFixed(2)}</span></div>
+          <div class="income-row highlight"><span>💰 我的收入(70%)</span><span>¥${b.myIncome.toFixed(2)}</span></div>
+        </div>
         <div class="order-time">${new Date(o.createdAt).toLocaleString('zh-CN')}</div>
         <div class="status-toggle">
           <label>状态：</label>
