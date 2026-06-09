@@ -14,12 +14,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 .container { max-width: 600px; margin: 0 auto; padding: 16px; }
 
-/* Tab switch */
 .tabs { display: flex; gap: 0; margin-bottom: 16px; background: #1a1a2e; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
 .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; color: #888; }
 .tab.active { background: #6c5ce7; color: #fff; }
 
-/* Form */
 .form-card { background: #1a1a2e; border-radius: 12px; padding: 20px; border: 1px solid #333; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; }
@@ -27,7 +25,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .form-group input:focus, .form-group select:focus { border-color: #6c5ce7; }
 .form-group select option { background: #1a1a2e; }
 
-/* Plan checkboxes */
 .plan-options { display: flex; flex-direction: column; gap: 10px; }
 .plan-option { display: flex; align-items: center; gap: 10px; padding: 12px; background: #0f0f1a; border: 1px solid #333; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
 .plan-option:has(input:checked) { border-color: #6c5ce7; background: #1e1040; }
@@ -38,32 +35,38 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
 .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Dashboard card */
+/* Dashboard */
 .dash-card { background: linear-gradient(135deg, #1e1040, #1a1a2e); border-radius: 12px; padding: 16px; border: 1px solid #6c5ce744; margin-bottom: 12px; }
 .dash-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.dash-item { background: #0f0f1a; border-radius: 8px; padding: 12px; text-align: center; }
-.dash-label { font-size: 11px; color: #888; margin-bottom: 4px; }
-.dash-value { font-size: 18px; font-weight: 700; }
+.dash-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+.dash-item { background: #0f0f1a; border-radius: 8px; padding: 10px; text-align: center; }
+.dash-label { font-size: 10px; color: #888; margin-bottom: 2px; }
+.dash-value { font-size: 16px; font-weight: 700; }
 .dash-value.gold { color: #ffd700; }
 .dash-value.purple { color: #a29bfe; }
 .dash-value.red { color: #ff6b6b; }
 .dash-value.green { color: #00b894; }
+.dash-value.orange { color: #fdcb6e; }
 
-/* Creator card */
+/* Filter */
+.filter-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.filter-bar span { font-size: 12px; color: #888; }
+.filter-chip { display: flex; align-items: center; gap: 4px; padding: 6px 12px; background: #1a1a2e; border: 1px solid #333; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; color: #888; }
+.filter-chip.active { border-color: #6c5ce7; color: #fff; background: #1e1040; }
+.filter-chip input { width: 14px; height: 14px; accent-color: #6c5ce7; }
+
 .creator-card { background: #1a1a2e; border-radius: 12px; padding: 16px; border: 1px solid #333; margin-bottom: 12px; }
 .creator-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .creator-name { font-size: 16px; font-weight: 700; color: #fff; }
-.creator-total { font-size: 14px; color: #6c5ce7; font-weight: 600; }
 
 .order-item { background: #0f0f1a; border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid #222; }
-.order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .order-plan { font-size: 14px; font-weight: 600; }
 .order-amount { font-size: 14px; color: #ffd700; }
 .order-phone { font-size: 12px; color: #888; }
 .order-time { font-size: 11px; color: #555; margin-top: 4px; }
 
-/* Income breakdown */
 .income-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; color: #aaa; }
 .income-row.highlight { color: #00b894; font-weight: 600; font-size: 13px; }
 
@@ -73,7 +76,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 .empty { text-align: center; padding: 40px; color: #555; font-size: 14px; }
 
-/* Toast */
 .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #00b894; color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 14px; z-index: 999; display: none; }
 .toast.error { background: #e74c3c; }
 </style>
@@ -91,7 +93,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="tab" onclick="switchTab('summary')">订单汇总</div>
   </div>
 
-  <!-- Add Order -->
   <div id="addPanel">
     <div class="form-card">
       <div class="form-group">
@@ -111,17 +112,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <label>选择版本</label>
         <div class="plan-options">
           <label class="plan-option">
-            <input type="radio" name="plan" value="个人高阶版">
+            <input type="radio" name="plan" value="个人高阶版" data-price="70" data-cost="45">
             <span>个人高阶版</span>
-            <span class="price">¥70</span>
+            <span class="price">¥70（成本¥45）</span>
           </label>
           <label class="plan-option">
-            <input type="radio" name="plan" value="个人旗舰版">
+            <input type="radio" name="plan" value="个人旗舰版" data-price="120" data-cost="89">
             <span>个人旗舰版</span>
-            <span class="price">¥120</span>
+            <span class="price">¥120（成本¥89）</span>
           </label>
           <label class="plan-option">
-            <input type="radio" name="plan" value="个人尊享版">
+            <input type="radio" name="plan" value="个人尊享版" data-price="0" data-cost="0">
             <span>个人尊享版</span>
             <span class="price">待定</span>
           </label>
@@ -129,14 +130,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       </div>
       <div class="form-group">
         <label>订单金额 (元)</label>
-        <input type="number" id="amount" placeholder="输入金额" step="0.01">
+        <input type="number" id="amount" placeholder="选版本后自动填入，可修改" step="0.01">
       </div>
       <button class="submit-btn" id="submitBtn" onclick="submitOrder()">提交订单</button>
     </div>
   </div>
 
-  <!-- Summary -->
   <div id="summaryPanel" style="display:none">
+    <div class="filter-bar">
+      <span>筛选：</span>
+      <div id="filterChips"></div>
+    </div>
     <div id="summaryContent"></div>
   </div>
 </div>
@@ -147,23 +151,38 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 const API = '/api/orders';
 let orders = [];
 
-// 咸鱼手续费率
+const PLAN_INFO = {
+  '个人高阶版': { price: 70, cost: 45 },
+  '个人旗舰版': { price: 120, cost: 89 },
+  '个人尊享版': { price: 0, cost: 0 }
+};
+
 const FEE_RATE = {
   '波比': 0.016,
   '周众（孙尚香人柱力）': 0.006,
   '迷人': 0
 };
 
-// 迷人抽成比例
 const MR_RATE = 0.30;
 
-function calcBreakdown(amount, creator) {
+let activeCreators = new Set();
+
+// Auto-fill amount when plan selected
+document.querySelectorAll('input[name="plan"]').forEach(el => {
+  el.addEventListener('change', () => {
+    const price = parseInt(el.dataset.price);
+    if (price > 0) document.getElementById('amount').value = price;
+  });
+});
+
+function calcBreakdown(amount, creator, plan) {
+  const cost = (PLAN_INFO[plan] && PLAN_INFO[plan].cost) || 0;
   const feeRate = FEE_RATE[creator] || 0;
   const fee = amount * feeRate;
-  const net = amount - fee;
-  const mrCut = net * MR_RATE;
-  const myIncome = net * (1 - MR_RATE);
-  return { fee, feeRate, net, mrCut, myIncome };
+  const profit = amount - cost - fee;
+  const mrCut = profit > 0 ? profit * MR_RATE : 0;
+  const myIncome = profit > 0 ? profit * (1 - MR_RATE) : 0;
+  return { cost, fee, feeRate, profit, mrCut, myIncome };
 }
 
 function switchTab(tab) {
@@ -207,7 +226,7 @@ async function submitOrder() {
     const res = await fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ creator, phone, plan: planEl.value, amount })
+      body: JSON.stringify({ creator, phone, plan: planEl.value, amount: parseFloat(amount) })
     });
     if (!res.ok) throw new Error(await res.text());
     showToast('订单提交成功！');
@@ -223,87 +242,120 @@ async function submitOrder() {
   }
 }
 
-async function loadSummary() {
-  try {
-    const res = await fetch(API);
-    orders = await res.json();
-  } catch (e) {
-    orders = [];
-  }
+function renderFilters() {
+  const creators = [...new Set(orders.map(o => o.creator))];
+  const container = document.getElementById('filterChips');
+  container.innerHTML = '';
+  creators.forEach(c => {
+    if (!activeCreators.has(c)) activeCreators.add(c);
+    const chip = document.createElement('label');
+    chip.className = 'filter-chip' + (activeCreators.has(c) ? ' active' : '');
+    chip.innerHTML = `<input type="checkbox" ${activeCreators.has(c)?'checked':''} onchange="toggleFilter('${c}', this.checked)"> ${c}`;
+    container.appendChild(chip);
+  });
+}
 
+function toggleFilter(creator, checked) {
+  if (checked) activeCreators.add(creator);
+  else activeCreators.delete(creator);
+  renderSummary();
+}
+
+function renderSummary() {
   const container = document.getElementById('summaryContent');
-  if (!orders.length) {
+  const filtered = orders.filter(o => activeCreators.has(o.creator));
+
+  if (!filtered.length) {
     container.innerHTML = '<div class="empty">暂无订单</div>';
     return;
   }
 
-  // Group by creator
-  const groups = {};
-  orders.forEach(o => {
-    if (!groups[o.creator]) groups[o.creator] = [];
-    groups[o.creator].push(o);
-  });
-
   let html = '';
 
   // Global dashboard
-  let gTotal = 0, gFee = 0, gMr = 0, gIncome = 0;
-  orders.forEach(o => {
-    const b = calcBreakdown(o.amount, o.creator);
+  let gTotal = 0, gCost = 0, gFee = 0, gProfit = 0, gMr = 0, gIncome = 0;
+  let gReceived = 0, gPending = 0;
+  filtered.forEach(o => {
+    const b = calcBreakdown(o.amount, o.creator, o.plan);
     gTotal += o.amount;
+    gCost += b.cost;
     gFee += b.fee;
+    gProfit += b.profit;
     gMr += b.mrCut;
     gIncome += b.myIncome;
+    if (o.status === '已收货') gReceived += o.amount;
+    else gPending += o.amount;
   });
 
   html += `<div class="dash-card">
     <div class="dash-title">📊 总览</div>
-    <div class="dash-grid">
-      <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${gTotal.toFixed(2)}</div></div>
+    <div class="dash-grid three">
+      <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${gTotal.toFixed(0)}</div></div>
+      <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${gReceived.toFixed(0)}</div></div>
+      <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${gPending.toFixed(0)}</div></div>
+    </div>
+    <div class="dash-grid" style="margin-top:10px">
+      <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${gCost.toFixed(0)}</div></div>
       <div class="dash-item"><div class="dash-label">咸鱼手续费</div><div class="dash-value red">-¥${gFee.toFixed(2)}</div></div>
       <div class="dash-item"><div class="dash-label">迷人技术支持(30%)</div><div class="dash-value purple">¥${gMr.toFixed(2)}</div></div>
-      <div class="dash-item"><div class="dash-label">个人收入合计(70%)</div><div class="dash-value green">¥${gIncome.toFixed(2)}</div></div>
+      <div class="dash-item"><div class="dash-label">💰 个人收入合计(70%)</div><div class="dash-value green">¥${gIncome.toFixed(2)}</div></div>
     </div>
   </div>`;
 
+  // Per-creator dashboard
+  const groups = {};
+  filtered.forEach(o => {
+    if (!groups[o.creator]) groups[o.creator] = [];
+    groups[o.creator].push(o);
+  });
+
   for (const [creator, list] of Object.entries(groups)) {
-    // Creator dashboard
-    let cTotal = 0, cFee = 0, cMr = 0, cIncome = 0;
-    const received = list.filter(o => o.status === '已收货').length;
+    let cTotal = 0, cCost = 0, cFee = 0, cMr = 0, cIncome = 0;
+    let cReceived = 0, cPending = 0, cRecCount = 0;
     list.forEach(o => {
-      const b = calcBreakdown(o.amount, o.creator);
+      const b = calcBreakdown(o.amount, o.creator, o.plan);
       cTotal += o.amount;
+      cCost += b.cost;
       cFee += b.fee;
       cMr += b.mrCut;
       cIncome += b.myIncome;
+      if (o.status === '已收货') { cReceived += o.amount; cRecCount++; }
+      else cPending += o.amount;
     });
 
     const feeRate = FEE_RATE[creator] || 0;
-    const feeLabel = creator === '迷人' ? '无手续费' : `咸鱼手续费 ${(feeRate*100).toFixed(1)}%`;
+    const feeLabel = feeRate > 0 ? `咸鱼手续费${(feeRate*100).toFixed(1)}%` : '无手续费';
 
     html += `<div class="dash-card">
-      <div class="dash-title">👤 ${creator} <span style="font-size:11px;color:#888;font-weight:400">${feeLabel} | ${received}/${list.length} 已收货</span></div>
-      <div class="dash-grid">
-        <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${cTotal.toFixed(2)}</div></div>
+      <div class="dash-title">👤 ${creator} <span style="font-size:11px;color:#888;font-weight:400">${feeLabel} | ${cRecCount}/${list.length} 已收货</span></div>
+      <div class="dash-grid three">
+        <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${cTotal.toFixed(0)}</div></div>
+        <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${cReceived.toFixed(0)}</div></div>
+        <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${cPending.toFixed(0)}</div></div>
+      </div>
+      <div class="dash-grid" style="margin-top:10px">
+        <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${cCost.toFixed(0)}</div></div>
         <div class="dash-item"><div class="dash-label">咸鱼手续费</div><div class="dash-value red">-¥${cFee.toFixed(2)}</div></div>
         <div class="dash-item"><div class="dash-label">迷人技术支持(30%)</div><div class="dash-value purple">¥${cMr.toFixed(2)}</div></div>
-        <div class="dash-item"><div class="dash-label">我的收入(70%)</div><div class="dash-value green">¥${cIncome.toFixed(2)}</div></div>
+        <div class="dash-item"><div class="dash-label">💰 我的收入(70%)</div><div class="dash-value green">¥${cIncome.toFixed(2)}</div></div>
       </div>
     </div>`;
 
     // Order list
     html += `<div class="creator-card">`;
     list.forEach(o => {
-      const b = calcBreakdown(o.amount, o.creator);
+      const b = calcBreakdown(o.amount, o.creator, o.plan);
+      const statusIcon = o.status === '已收货' ? '✅' : '⏳';
       html += `<div class="order-item">
         <div class="order-top">
-          <span class="order-plan">${o.plan}</span>
-          <span class="order-amount">¥${o.amount.toFixed(2)}</span>
+          <span class="order-plan">${statusIcon} ${o.plan}</span>
+          <span class="order-amount">¥${o.amount.toFixed(0)}</span>
         </div>
         <div class="order-phone">📱 ${o.phone}</div>
         <div style="margin-top:6px; border-top:1px solid #222; padding-top:6px;">
+          <div class="income-row"><span>成本</span><span>-¥${b.cost.toFixed(0)}</span></div>
           <div class="income-row"><span>咸鱼手续费(${(b.feeRate*100).toFixed(1)}%)</span><span>-¥${b.fee.toFixed(2)}</span></div>
-          <div class="income-row"><span>扣费后净额</span><span>¥${b.net.toFixed(2)}</span></div>
+          <div class="income-row"><span>利润</span><span>¥${b.profit.toFixed(2)}</span></div>
           <div class="income-row"><span>迷人技术支持(30%)</span><span>-¥${b.mrCut.toFixed(2)}</span></div>
           <div class="income-row highlight"><span>💰 我的收入(70%)</span><span>¥${b.myIncome.toFixed(2)}</span></div>
         </div>
@@ -322,6 +374,17 @@ async function loadSummary() {
   container.innerHTML = html;
 }
 
+async function loadSummary() {
+  try {
+    const res = await fetch(API);
+    orders = await res.json();
+  } catch (e) {
+    orders = [];
+  }
+  renderFilters();
+  renderSummary();
+}
+
 async function updateStatus(id, status) {
   try {
     const res = await fetch(API, {
@@ -331,6 +394,10 @@ async function updateStatus(id, status) {
     });
     if (!res.ok) throw new Error(await res.text());
     showToast('状态已更新');
+    // Re-render with local data
+    const o = orders.find(x => x.id === id);
+    if (o) o.status = status;
+    renderSummary();
   } catch (e) {
     showToast('更新失败: ' + e.message, true);
   }
