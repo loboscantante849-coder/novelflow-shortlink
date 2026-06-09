@@ -288,7 +288,7 @@ function renderSummary() {
 
   // Global dashboard
   let gTotal = 0, gCost = 0, gFee = 0, gProfit = 0, gMr = 0, gIncome = 0;
-  let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0;
+  let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0, gMrPaid = 0;
   filtered.forEach(o => {
     const b = calcBreakdown(o.amount, o.creator, o.plan);
     gTotal += o.amount;
@@ -297,18 +297,19 @@ function renderSummary() {
     gProfit += b.profit;
     gMr += b.mrCut;
     gIncome += b.myIncome;
-    if (o.status === '已交付') { gDelivered += o.amount; gDeliveredCount++; }
+    if (o.status === '已交付') { gDelivered += o.amount; gDeliveredCount++; gMrPaid += b.mrCut; }
     else if (o.status === '已收货') gReceived += o.amount;
     else gPending += o.amount;
   });
 
   html += `<div class="dash-card">
     <div class="dash-title">📊 总览</div>
-    <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+    <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
       <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${gTotal.toFixed(0)}</div></div>
       <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${gPending.toFixed(0)}</div></div>
       <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${gReceived.toFixed(0)}</div></div>
       <div class="dash-item"><div class="dash-label">💰 已交付</div><div class="dash-value" style="color:#6c5ce7">¥${gDelivered.toFixed(0)}</div></div>
+      <div class="dash-item"><div class="dash-label">💵 已分润(迷人30%)</div><div class="dash-value" style="color:#fdcb6e">¥${gMrPaid.toFixed(2)}</div></div>
     </div>
     <div class="dash-grid" style="margin-top:10px">
       <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${gCost.toFixed(0)}</div></div>
@@ -330,7 +331,7 @@ function renderSummary() {
 
   for (const [creator, list] of Object.entries(groups)) {
     let cTotal = 0, cCost = 0, cFee = 0, cProfit = 0, cMr = 0, cIncome = 0;
-    let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0;
+    let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0, cMrPaid = 0;
     list.forEach(o => {
       const b = calcBreakdown(o.amount, o.creator, o.plan);
       cTotal += o.amount;
@@ -339,7 +340,7 @@ function renderSummary() {
       cProfit += b.profit;
       cMr += b.mrCut;
       cIncome += b.myIncome;
-      if (o.status === '已交付') { cDelivered += o.amount; cDeliveredCount++; }
+      if (o.status === '已交付') { cDelivered += o.amount; cDeliveredCount++; cMrPaid += b.mrCut; }
       else if (o.status === '已收货') { cReceived += o.amount; cRecCount++; }
       else cPending += o.amount;
     });
@@ -348,11 +349,12 @@ function renderSummary() {
 
     html += `<div class="dash-card">
       <div class="dash-title">👤 ${getDisplayName(creator)} <span style="font-size:11px;color:#888;font-weight:400">手续费${(feeRate*100).toFixed(1)}% | 已交付${cDeliveredCount} 已收货${cRecCount} 待收货${list.length-cRecCount-cDeliveredCount}</span></div>
-      <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+      <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
         <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${cTotal.toFixed(0)}</div></div>
         <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${cPending.toFixed(0)}</div></div>
         <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${cReceived.toFixed(0)}</div></div>
         <div class="dash-item"><div class="dash-label">💰 已交付</div><div class="dash-value" style="color:#6c5ce7">¥${cDelivered.toFixed(0)}</div></div>
+        <div class="dash-item"><div class="dash-label">💵 已分润(迷人30%)</div><div class="dash-value" style="color:#fdcb6e">¥${cMrPaid.toFixed(2)}</div></div>
       </div>
       <div class="dash-grid" style="margin-top:10px">
         <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${cCost.toFixed(0)}</div></div>
