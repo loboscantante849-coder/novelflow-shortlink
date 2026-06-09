@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>访问监控 - Coze短链</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a12; color: #e0e0e0; min-height: 100vh; }
+
+.header { background: linear-gradient(180deg, #12121e 0%, #0a0a12 100%); padding: 24px 20px 16px; text-align: center; }
+.header h1 { font-size: 20px; color: #fff; font-weight: 700; }
+.header p { font-size: 13px; color: #555; margin-top: 4px; }
+
+.container { max-width: 640px; margin: 0 auto; padding: 0 16px 32px; }
+
+/* Stats */
+.stat-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.stat-block { flex: 1; background: #12121e; border-radius: 12px; padding: 16px 12px; text-align: center; border: 1px solid #1e1e35; }
+.stat-label { font-size: 11px; color: #666; margin-bottom: 6px; }
+.stat-num { font-size: 28px; font-weight: 800; line-height: 1; }
+.stat-num.white { color: #e0e0e0; }
+.stat-num.purple { color: #a29bfe; }
+.stat-num.green { color: #00b894; }
+.stat-num.yellow { color: #fdcb6e; }
+
+/* IP summary cards */
+.ip-card { background: #12121e; border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; border: 1px solid #1e1e35; display: flex; align-items: center; justify-content: space-between; }
+.ip-left { display: flex; flex-direction: column; gap: 2px; }
+.ip-addr { font-size: 14px; font-weight: 600; color: #fff; font-family: monospace; }
+.ip-ua { font-size: 11px; color: #555; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ip-right { text-align: right; }
+.ip-count { font-size: 20px; font-weight: 800; color: #6c5ce7; }
+.ip-count-label { font-size: 10px; color: #555; }
+.ip-last { font-size: 10px; color: #444; margin-top: 2px; }
+
+/* Visit list */
+.section-title { font-size: 15px; font-weight: 700; color: #fff; margin: 16px 0 12px; display: flex; align-items: center; gap: 8px; }
+.visit-item { background: #0a0a12; border-radius: 10px; padding: 12px 14px; margin-bottom: 6px; border: 1px solid #1a1a2e; }
+.visit-time { font-size: 12px; color: #6c5ce7; font-weight: 600; margin-bottom: 4px; }
+.visit-ip { font-size: 13px; color: #ddd; font-family: monospace; }
+.visit-ua { font-size: 11px; color: #555; margin-top: 4px; word-break: break-all; }
+
+.tabs { display: flex; gap: 0; margin: 16px 0; background: #16162a; border-radius: 12px; overflow: hidden; border: 1px solid #222; }
+.tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; color: #666; }
+.tab.active { background: #6c5ce7; color: #fff; }
+
+.empty { text-align: center; padding: 48px 20px; color: #444; font-size: 14px; }
+
+.refresh-btn { display: block; width: 100%; padding: 14px; background: #16162a; border: 1px solid #222; border-radius: 12px; color: #6c5ce7; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 16px; text-align: center; }
+.refresh-btn:active { opacity: 0.7; }
+
+.back-link { display: inline-block; margin-bottom: 12px; color: #6c5ce7; text-decoration: none; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>👁 访问监控</h1>
+  <p>Coze短链 /coze 访问记录</p>
+</div>
+
+<div class="container">
+  <a href="/orders" class="back-link">← 返回订单管理</a>
+
+  <button class="refresh-btn" onclick="loadData()">🔄 刷新数据</button>
+
+  <div id="statsArea"></div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchView('ip')">按IP汇总</div>
+    <div class="tab" onclick="switchView('list')">详细记录</div>
+  </div>
+
+  <div id="ipView"></div>
+  <div id="listView" style="display:none"></div>
+</div>
+
+<script>
+const API = '/api/coze-visits';
+let visits = [];
+
+function switchView(v) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (v === 'ip') {
+    document.querySelectorAll('.tab')[0].classList.add('active');
+    document.getElementById('ipView').style.display = '';
+    document.getElementById('listView').style.display = 'none';
+  } else {
+    document.querySelectorAll('.tab')[1].classList.add('active');
+    document.getElementById('ipView').style.display = 'none';
+    document.getElementById('listView').style.display = '';
+  }
+}
+
+function parseUA(ua) {
+  if (!ua) return 'Unknown';
+  if (/iPhone/i.test(ua)) return 'iPhone';
+  if (/iPad/i.test(ua)) return 'iPad';
+  if (/Android/i.test(ua)) return 'Android';
+  if (/Macintosh/i.test(ua)) return 'Mac';
+  if (/Windows/i.test(ua)) return 'Windows';
+  if (/Linux/i.test(ua)) return 'Linux';
+  return 'Other';
+}
+
+function timeAgo(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return '刚刚';
+  if (mins < 60) return mins + '分钟前';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + '小时前';
+  const days = Math.floor(hrs / 24);
+  return days + '天前';
+}
+
+function formatTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+function render() {
+  if (!visits.length) {
+    document.getElementById('statsArea').innerHTML = '';
+    document.getElementById('ipView').innerHTML = '<div class="empty">暂无访问记录</div>';
+    document.getElementById('listView').innerHTML = '<div class="empty">暂无访问记录</div>';
+    return;
+  }
+
+  // Stats
+  const totalVisits = visits.length;
+  const uniqueIPs = new Set(visits.map(v => v.ip)).size;
+  const today = new Date().toDateString();
+  const todayVisits = visits.filter(v => new Date(v.time).toDateString() === today).length;
+  const lastVisit = visits[visits.length - 1];
+
+  document.getElementById('statsArea').innerHTML = `
+    <div class="stat-row">
+      <div class="stat-block"><div class="stat-label">总访问</div><div class="stat-num white">${totalVisits}</div></div>
+      <div class="stat-block"><div class="stat-label">独立IP</div><div class="stat-num purple">${uniqueIPs}</div></div>
+      <div class="stat-block"><div class="stat-label">今日访问</div><div class="stat-num green">${todayVisits}</div></div>
+    </div>`;
+
+  // IP summary
+  const ipMap = {};
+  visits.forEach(v => {
+    if (!ipMap[v.ip]) ipMap[v.ip] = { count: 0, lastTime: v.time, ua: v.ua, devices: new Set() };
+    ipMap[v.ip].count++;
+    if (new Date(v.time) > new Date(ipMap[v.ip].lastTime)) ipMap[v.ip].lastTime = v.time;
+    ipMap[v.ip].devices.add(parseUA(v.ua));
+  });
+
+  const ipList = Object.entries(ipMap).sort((a, b) => b[1].count - a[1].count);
+  let ipHtml = '';
+  ipList.forEach(([ip, info]) => {
+    ipHtml += `<div class="ip-card">
+      <div class="ip-left">
+        <div class="ip-addr">${ip}</div>
+        <div class="ip-ua">${[...info.devices].join(', ')} | ${info.ua ? info.ua.slice(0, 60) : ''}</div>
+      </div>
+      <div class="ip-right">
+        <div class="ip-count">${info.count}</div>
+        <div class="ip-count-label">次访问</div>
+        <div class="ip-last">${timeAgo(info.lastTime)}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('ipView').innerHTML = ipHtml;
+
+  // Visit list (newest first)
+  const sorted = [...visits].reverse();
+  let listHtml = '';
+  sorted.forEach(v => {
+    listHtml += `<div class="visit-item">
+      <div class="visit-time">${formatTime(v.time)}</div>
+      <div class="visit-ip">${v.ip} · ${parseUA(v.ua)}</div>
+      <div class="visit-ua">${v.ua || '-'}</div>
+    </div>`;
+  });
+  document.getElementById('listView').innerHTML = listHtml;
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(API);
+    visits = await res.json();
+  } catch (e) {
+    visits = [];
+  }
+  render();
+}
+
+loadData();
+</script>
+</body>
+</html>

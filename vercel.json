@@ -1,12 +1,13 @@
 {
-  "redirects": [
+  "rewrites": [
     {
       "source": "/coze",
-      "destination": "https://code.coze.cn/subscription-paywall?dist_channel=10002&distributor_id=20024",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
+      "destination": "/api/coze-redirect"
+    },
+    {
+      "source": "/coze-logs",
+      "destination": "/coze-logs.html"
+    },
     {
       "source": "/orders",
       "destination": "/orders.html"
