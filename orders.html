@@ -6,82 +6,126 @@
 <title>订单管理 - NovelFlow</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a12; color: #e0e0e0; min-height: 100vh; }
 
-.header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 20px; text-align: center; border-bottom: 1px solid #333; }
-.header h1 { font-size: 20px; color: #fff; }
-.header p { font-size: 13px; color: #888; margin-top: 4px; }
+/* Header */
+.header { background: linear-gradient(180deg, #12121e 0%, #0a0a12 100%); padding: 24px 20px 16px; text-align: center; }
+.header h1 { font-size: 22px; color: #fff; font-weight: 700; letter-spacing: 1px; }
+.header p { font-size: 13px; color: #555; margin-top: 4px; }
 
-.container { max-width: 600px; margin: 0 auto; padding: 16px; }
+/* Container */
+.container { max-width: 640px; margin: 0 auto; padding: 0 16px 32px; }
 
-.tabs { display: flex; gap: 0; margin-bottom: 16px; background: #1a1a2e; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
-.tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; color: #888; }
+/* Tabs */
+.tabs { display: flex; gap: 0; margin: 16px 0; background: #16162a; border-radius: 12px; overflow: hidden; border: 1px solid #222; }
+.tab { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; color: #666; }
 .tab.active { background: #6c5ce7; color: #fff; }
 
-.form-card { background: #1a1a2e; border-radius: 12px; padding: 20px; border: 1px solid #333; }
-.form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; }
-.form-group input, .form-group select { width: 100%; padding: 12px; background: #0f0f1a; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; outline: none; }
+/* Form */
+.form-card { background: #12121e; border-radius: 16px; padding: 24px; border: 1px solid #1e1e35; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-size: 13px; color: #777; margin-bottom: 8px; font-weight: 500; }
+.form-group input, .form-group select {
+  width: 100%; padding: 14px 16px; background: #0a0a12; border: 1px solid #222; border-radius: 10px;
+  color: #fff; font-size: 15px; outline: none; transition: border-color 0.2s;
+}
 .form-group input:focus, .form-group select:focus { border-color: #6c5ce7; }
-.form-group select option { background: #1a1a2e; }
+.form-group select option { background: #12121e; }
 
 .plan-options { display: flex; flex-direction: column; gap: 10px; }
-.plan-option { display: flex; align-items: center; gap: 10px; padding: 12px; background: #0f0f1a; border: 1px solid #333; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-.plan-option:has(input:checked) { border-color: #6c5ce7; background: #1e1040; }
+.plan-option {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  background: #0a0a12; border: 1px solid #1e1e35; border-radius: 10px;
+  cursor: pointer; transition: all 0.2s;
+}
+.plan-option:has(input:checked) { border-color: #6c5ce7; background: #1a0f35; }
 .plan-option input { width: 18px; height: 18px; accent-color: #6c5ce7; }
-.plan-option span { font-size: 14px; }
-.plan-option .price { margin-left: auto; color: #6c5ce7; font-weight: 600; font-size: 14px; }
+.plan-option .plan-name { font-size: 14px; color: #ddd; }
+.plan-option .plan-price { margin-left: auto; color: #6c5ce7; font-weight: 600; font-size: 14px; }
 
-.submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
-.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.submit-btn {
+  width: 100%; padding: 16px; background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700;
+  cursor: pointer; margin-top: 4px; transition: opacity 0.2s;
+}
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* Dashboard */
-.dash-card { background: linear-gradient(135deg, #1e1040, #1a1a2e); border-radius: 12px; padding: 16px; border: 1px solid #6c5ce744; margin-bottom: 12px; }
-.dash-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.dash-grid.three { grid-template-columns: 1fr 1fr 1fr; }
-.dash-item { background: #0f0f1a; border-radius: 8px; padding: 10px; text-align: center; }
-.dash-label { font-size: 10px; color: #888; margin-bottom: 2px; }
-.dash-value { font-size: 16px; font-weight: 700; }
-.dash-value.gold { color: #ffd700; }
-.dash-value.purple { color: #a29bfe; }
-.dash-value.red { color: #ff6b6b; }
-.dash-value.green { color: #00b894; }
-.dash-value.orange { color: #fdcb6e; }
+/* Section cards */
+.section-card {
+  background: #12121e; border-radius: 16px; padding: 20px;
+  border: 1px solid #1e1e35; margin-bottom: 16px;
+}
+.section-title {
+  font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* Big number stats */
+.stat-row { display: flex; gap: 12px; margin-bottom: 16px; }
+.stat-block {
+  flex: 1; background: #0a0a12; border-radius: 12px; padding: 16px 12px;
+  text-align: center; border: 1px solid #1e1e35;
+}
+.stat-label { font-size: 11px; color: #666; margin-bottom: 6px; letter-spacing: 0.5px; }
+.stat-num { font-size: 28px; font-weight: 800; line-height: 1; }
+.stat-num.white { color: #e0e0e0; }
+.stat-num.red { color: #ff6b6b; }
+.stat-num.green { color: #00b894; }
+.stat-num.purple { color: #a29bfe; }
+.stat-num.gold { color: #ffd700; }
+.stat-num.yellow { color: #fdcb6e; }
+
+/* Money grid */
+.money-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.money-item { background: #0a0a12; border-radius: 10px; padding: 12px; text-align: center; border: 1px solid #1a1a2e; }
+.money-label { font-size: 10px; color: #555; margin-bottom: 4px; }
+.money-value { font-size: 16px; font-weight: 700; }
 
 /* Filter */
-.filter-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
-.filter-bar span { font-size: 12px; color: #888; }
-.filter-chip { display: flex; align-items: center; gap: 4px; padding: 6px 12px; background: #1a1a2e; border: 1px solid #333; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; color: #888; }
-.filter-chip.active { border-color: #6c5ce7; color: #fff; background: #1e1040; }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-chip {
+  display: flex; align-items: center; gap: 4px; padding: 8px 14px;
+  background: #12121e; border: 1px solid #1e1e35; border-radius: 20px;
+  cursor: pointer; font-size: 13px; transition: all 0.2s; color: #666;
+}
+.filter-chip.active { border-color: #6c5ce7; color: #fff; background: #1a0f35; }
 .filter-chip input { width: 14px; height: 14px; accent-color: #6c5ce7; }
 
-.creator-card { background: #1a1a2e; border-radius: 12px; padding: 16px; border: 1px solid #333; margin-bottom: 12px; }
+/* Order list */
+.order-item {
+  background: #0a0a12; border-radius: 12px; padding: 16px; margin-bottom: 10px;
+  border: 1px solid #1a1a2e; transition: border-color 0.2s;
+}
+.order-item:hover { border-color: #333; }
+.order-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.order-plan { font-size: 15px; font-weight: 600; }
+.order-amount { font-size: 15px; color: #ffd700; font-weight: 700; }
+.order-phone { font-size: 13px; color: #666; margin-bottom: 10px; }
 
-.order-item { background: #0f0f1a; border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid #222; }
-.order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.order-plan { font-size: 14px; font-weight: 600; }
-.order-amount { font-size: 14px; color: #ffd700; }
-.order-phone { font-size: 12px; color: #888; }
-.order-time { font-size: 11px; color: #555; margin-top: 4px; }
-
-.breakdown { margin-top: 8px; border-top: 1px dashed #333; padding-top: 8px; }
-.bk-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; color: #aaa; }
-.bk-row.total { color: #e0e0e0; font-weight: 600; font-size: 13px; border-top: 1px solid #444; margin-top: 4px; padding-top: 6px; }
-.bk-split { padding-left: 16px; }
-.bk-split .bk-row { color: #bbb; }
-.bk-row.mine { color: #00b894; font-weight: 600; font-size: 13px; }
-.bk-row.mr { color: #a29bfe; }
+/* Breakdown */
+.breakdown { border-top: 1px solid #1a1a2e; padding-top: 10px; }
+.bk-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; color: #777; }
+.bk-row.cost { color: #555; }
 .bk-row.fee { color: #ff6b6b; }
-.bk-row.cost { color: #888; }
+.bk-row.total { color: #ddd; font-weight: 600; font-size: 13px; border-top: 1px solid #222; margin-top: 6px; padding-top: 8px; }
+.bk-split { padding-left: 20px; }
+.bk-split .bk-row { color: #999; font-size: 12px; }
+.bk-row.mr { color: #a29bfe; }
+.bk-row.mine { color: #00b894; font-weight: 600; font-size: 13px; }
 
-.status-toggle { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.status-toggle label { font-size: 12px; color: #aaa; }
-.status-select { padding: 4px 8px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 12px; }
+/* Status */
+.status-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #1a1a2e; }
+.status-label { font-size: 12px; color: #666; }
+.status-select {
+  padding: 6px 10px; background: #12121e; border: 1px solid #222;
+  border-radius: 8px; color: #fff; font-size: 12px; flex: 1;
+}
+.lock-badge { font-size: 11px; color: #00b894; background: #0a2a1a; padding: 4px 10px; border-radius: 6px; }
 
-.empty { text-align: center; padding: 40px; color: #555; font-size: 14px; }
+.order-time { font-size: 11px; color: #444; margin-top: 8px; }
 
-.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #00b894; color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 14px; z-index: 999; display: none; }
+.empty { text-align: center; padding: 48px 20px; color: #444; font-size: 14px; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #00b894; color: #fff; padding: 12px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 999; display: none; }
 .toast.error { background: #e74c3c; }
 </style>
 </head>
@@ -89,7 +133,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 <div class="header">
   <h1>📋 订单管理</h1>
-  <p>NovelFlow 内部订单记录</p>
+  <p>NovelFlow 内部订单</p>
 </div>
 
 <div class="container">
@@ -119,34 +163,31 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <div class="plan-options">
           <label class="plan-option">
             <input type="radio" name="plan" value="个人高阶版" data-price="75" data-cost="45">
-            <span>个人高阶版</span>
-            <span class="price">¥75（成本¥45）</span>
+            <span class="plan-name">个人高阶版</span>
+            <span class="plan-price">¥75</span>
           </label>
           <label class="plan-option">
             <input type="radio" name="plan" value="个人旗舰版" data-price="120" data-cost="89">
-            <span>个人旗舰版</span>
-            <span class="price">¥120（成本¥89）</span>
+            <span class="plan-name">个人旗舰版</span>
+            <span class="plan-price">¥120</span>
           </label>
           <label class="plan-option">
             <input type="radio" name="plan" value="个人尊享版" data-price="0" data-cost="0">
-            <span>个人尊享版</span>
-            <span class="price">待定</span>
+            <span class="plan-name">个人尊享版</span>
+            <span class="plan-price">待定</span>
           </label>
         </div>
       </div>
       <div class="form-group">
         <label>订单金额 (元)</label>
-        <input type="number" id="amount" placeholder="选版本后自动填入，可修改" step="0.01">
+        <input type="number" id="amount" placeholder="选版本后自动填入" step="0.01">
       </div>
       <button class="submit-btn" id="submitBtn" onclick="submitOrder()">提交订单</button>
     </div>
   </div>
 
   <div id="summaryPanel" style="display:none">
-    <div class="filter-bar">
-      <span>筛选：</span>
-      <div id="filterChips"></div>
-    </div>
+    <div class="filter-bar" id="filterBar"></div>
     <div id="summaryContent"></div>
   </div>
 </div>
@@ -170,6 +211,8 @@ const FEE_RATE = {
   '迷人': 0.006
 };
 
+const DISPLAY_NAME = { '周总': '周众（孙尚香人柱力）' };
+function getDisplayName(c) { return DISPLAY_NAME[c] || c; }
 const MR_RATE = 0.30;
 
 let activeCreators = new Set();
@@ -180,14 +223,6 @@ document.querySelectorAll('input[name="plan"]').forEach(el => {
     if (price > 0) document.getElementById('amount').value = price;
   });
 });
-
-const DISPLAY_NAME = {
-  '周总': '周众（孙尚香人柱力）'
-};
-
-function getDisplayName(creator) {
-  return DISPLAY_NAME[creator] || creator;
-}
 
 function calcBreakdown(amount, creator, plan) {
   const cost = (PLAN_INFO[plan] && PLAN_INFO[plan].cost) || 0;
@@ -226,20 +261,16 @@ async function submitOrder() {
   const phone = document.getElementById('phone').value.trim();
   const planEl = document.querySelector('input[name="plan"]:checked');
   const amount = document.getElementById('amount').value;
-
   if (!creator) return showToast('请选择开单人', true);
   if (!phone) return showToast('请输入手机号', true);
   if (!planEl) return showToast('请选择版本', true);
   if (!amount) return showToast('请输入金额', true);
 
   const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.textContent = '提交中...';
-
+  btn.disabled = true; btn.textContent = '提交中...';
   try {
     const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ creator, phone, plan: planEl.value, amount: parseFloat(amount) })
     });
     if (!res.ok) throw new Error(await res.text());
@@ -251,21 +282,20 @@ async function submitOrder() {
   } catch (e) {
     showToast('提交失败: ' + e.message, true);
   } finally {
-    btn.disabled = false;
-    btn.textContent = '提交订单';
+    btn.disabled = false; btn.textContent = '提交订单';
   }
 }
 
 function renderFilters() {
   const creators = [...new Set(orders.map(o => o.creator))];
-  const container = document.getElementById('filterChips');
-  container.innerHTML = '';
+  const bar = document.getElementById('filterBar');
+  bar.innerHTML = '';
   creators.forEach(c => {
     if (!activeCreators.has(c)) activeCreators.add(c);
     const chip = document.createElement('label');
     chip.className = 'filter-chip' + (activeCreators.has(c) ? ' active' : '');
-    chip.innerHTML = `<input type="checkbox" ${activeCreators.has(c)?'checked':''} onchange="toggleFilter('${c}', this.checked)"> ${c}`;
-    container.appendChild(chip);
+    chip.innerHTML = `<input type="checkbox" ${activeCreators.has(c)?'checked':''} onchange="toggleFilter('${c}', this.checked)"> ${getDisplayName(c)}`;
+    bar.appendChild(chip);
   });
 }
 
@@ -286,49 +316,40 @@ function renderSummary() {
 
   let html = '';
 
-  // Global dashboard
+  // === Global overview ===
   let gTotal = 0, gCost = 0, gFee = 0, gProfit = 0, gMr = 0, gIncome = 0;
-  let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0, gMrPaid = 0, gTotalCount = 0, gDoneCount = 0, gActiveCount = 0;
+  let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0, gMrPaid = 0;
+  let gTotalCount = 0, gDoneCount = 0, gActiveCount = 0;
   filtered.forEach(o => {
     const b = calcBreakdown(o.amount, o.creator, o.plan);
-    gTotal += o.amount;
-    gCost += b.cost;
-    gFee += b.fee;
-    gProfit += b.profit;
-    gMr += b.mrCut;
-    gIncome += b.myIncome;
+    gTotal += o.amount; gCost += b.cost; gFee += b.fee;
+    gProfit += b.profit; gMr += b.mrCut; gIncome += b.myIncome;
     gTotalCount++;
     if (o.status === '已交付') { gDelivered += o.amount; gDeliveredCount++; gMrPaid += b.mrCut; gDoneCount++; }
     else if (o.status === '已收货') { gReceived += o.amount; gActiveCount++; }
     else { gPending += o.amount; gActiveCount++; }
   });
 
-  html += `<div class="dash-card">
-    <div class="dash-title">📊 总览</div>
-    <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr">
-      <div class="dash-item" style="padding:16px"><div class="dash-label" style="font-size:12px">总订单</div><div class="dash-value" style="font-size:32px;color:#e0e0e0">${gTotalCount}</div></div>
-      <div class="dash-item" style="padding:16px"><div class="dash-label" style="font-size:12px">🔴 进行中</div><div class="dash-value" style="font-size:32px;color:#ff6b6b">${gActiveCount}</div></div>
-      <div class="dash-item" style="padding:16px"><div class="dash-label" style="font-size:12px">🟢 已完结</div><div class="dash-value" style="font-size:32px;color:#00b894">${gDoneCount}</div></div>
+  html += `<div class="section-card">
+    <div class="section-title">📊 总览</div>
+    <div class="stat-row">
+      <div class="stat-block"><div class="stat-label">总订单</div><div class="stat-num white">${gTotalCount}</div></div>
+      <div class="stat-block"><div class="stat-label">🔴 进行中</div><div class="stat-num red">${gActiveCount}</div></div>
+      <div class="stat-block"><div class="stat-label">🟢 已完结</div><div class="stat-num green">${gDoneCount}</div></div>
     </div>
-    <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
-      <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${gTotal.toFixed(0)}</div></div>
-      <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${gPending.toFixed(0)}</div></div>
-      <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${gReceived.toFixed(0)}</div></div>
-      <div class="dash-item"><div class="dash-label">💰 已交付</div><div class="dash-value" style="color:#6c5ce7">¥${gDelivered.toFixed(0)}</div></div>
-      <div class="dash-item"><div class="dash-label">💵 已分润(迷人30%)</div><div class="dash-value" style="color:#fdcb6e">¥${gMrPaid.toFixed(2)}</div></div>
-    </div>
-    <div class="dash-grid" style="margin-top:10px">
-      <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${gCost.toFixed(0)}</div></div>
-      <div class="dash-item"><div class="dash-label">手续费(拨出)</div><div class="dash-value red">¥${gFee.toFixed(2)}</div></div>
-      <div class="dash-item"><div class="dash-label">可分配利润</div><div class="dash-value" style="color:#e0e0e0">¥${gProfit.toFixed(2)}</div></div>
-    </div>
-    <div class="dash-grid" style="margin-top:6px">
-      <div class="dash-item"><div class="dash-label">迷人30%</div><div class="dash-value purple">¥${gMr.toFixed(2)}</div></div>
-      <div class="dash-item"><div class="dash-label">💰 个人70%</div><div class="dash-value green">¥${gIncome.toFixed(2)}</div></div>
+    <div class="money-grid">
+      <div class="money-item"><div class="money-label">订单总额</div><div class="money-value" style="color:#ffd700">¥${gTotal.toFixed(0)}</div></div>
+      <div class="money-item"><div class="money-label">⏳ 待收货</div><div class="money-value" style="color:#fdcb6e">¥${gPending.toFixed(0)}</div></div>
+      <div class="money-item"><div class="money-label">✅ 已收货</div><div class="money-value" style="color:#00b894">¥${gReceived.toFixed(0)}</div></div>
+      <div class="money-item"><div class="money-label">💰 已交付</div><div class="money-value" style="color:#a29bfe">¥${gDelivered.toFixed(0)}</div></div>
+      <div class="money-item"><div class="money-label">成本</div><div class="money-value" style="color:#555">¥${gCost.toFixed(0)}</div></div>
+      <div class="money-item"><div class="money-label">手续费拨出</div><div class="money-value" style="color:#ff6b6b">¥${gFee.toFixed(2)}</div></div>
+      <div class="money-item"><div class="money-label">可分配利润</div><div class="money-value" style="color:#ddd">¥${gProfit.toFixed(2)}</div></div>
+      <div class="money-item"><div class="money-label">💵 已分润(迷人30%)</div><div class="money-value" style="color:#fdcb6e">¥${gMrPaid.toFixed(2)}</div></div>
     </div>
   </div>`;
 
-  // Per-creator dashboard
+  // === Per-creator ===
   const groups = {};
   filtered.forEach(o => {
     if (!groups[o.creator]) groups[o.creator] = [];
@@ -337,15 +358,12 @@ function renderSummary() {
 
   for (const [creator, list] of Object.entries(groups)) {
     let cTotal = 0, cCost = 0, cFee = 0, cProfit = 0, cMr = 0, cIncome = 0;
-    let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0, cMrPaid = 0, cTotalCount = 0, cDoneCount = 0, cActiveCount = 0;
+    let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0, cMrPaid = 0;
+    let cTotalCount = 0, cDoneCount = 0, cActiveCount = 0;
     list.forEach(o => {
       const b = calcBreakdown(o.amount, o.creator, o.plan);
-      cTotal += o.amount;
-      cCost += b.cost;
-      cFee += b.fee;
-      cProfit += b.profit;
-      cMr += b.mrCut;
-      cIncome += b.myIncome;
+      cTotal += o.amount; cCost += b.cost; cFee += b.fee;
+      cProfit += b.profit; cMr += b.mrCut; cIncome += b.myIncome;
       cTotalCount++;
       if (o.status === '已交付') { cDelivered += o.amount; cDeliveredCount++; cMrPaid += b.mrCut; cDoneCount++; }
       else if (o.status === '已收货') { cReceived += o.amount; cRecCount++; cActiveCount++; }
@@ -353,39 +371,34 @@ function renderSummary() {
     });
 
     const feeRate = FEE_RATE[creator] || 0;
+    const displayName = getDisplayName(creator);
 
-    html += `<div class="dash-card">
-      <div class="dash-title">👤 ${getDisplayName(creator)} <span style="font-size:11px;color:#888;font-weight:400">手续费${(feeRate*100).toFixed(1)}%</span></div>
-      <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr">
-        <div class="dash-item" style="padding:14px"><div class="dash-label" style="font-size:12px">总订单</div><div class="dash-value" style="font-size:28px;color:#e0e0e0">${cTotalCount}</div></div>
-        <div class="dash-item" style="padding:14px"><div class="dash-label" style="font-size:12px">🔴 进行中</div><div class="dash-value" style="font-size:28px;color:#ff6b6b">${cActiveCount}</div></div>
-        <div class="dash-item" style="padding:14px"><div class="dash-label" style="font-size:12px">🟢 已完结</div><div class="dash-value" style="font-size:28px;color:#00b894">${cDoneCount}</div></div>
+    html += `<div class="section-card">
+      <div class="section-title">👤 ${displayName} <span style="font-size:11px;color:#555;font-weight:400">手续费${(feeRate*100).toFixed(1)}%</span></div>
+      <div class="stat-row">
+        <div class="stat-block"><div class="stat-label">总订单</div><div class="stat-num white">${cTotalCount}</div></div>
+        <div class="stat-block"><div class="stat-label">🔴 进行中</div><div class="stat-num red">${cActiveCount}</div></div>
+        <div class="stat-block"><div class="stat-label">🟢 已完结</div><div class="stat-num green">${cDoneCount}</div></div>
       </div>
-      <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
-        <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${cTotal.toFixed(0)}</div></div>
-        <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${cPending.toFixed(0)}</div></div>
-        <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${cReceived.toFixed(0)}</div></div>
-        <div class="dash-item"><div class="dash-label">💰 已交付</div><div class="dash-value" style="color:#6c5ce7">¥${cDelivered.toFixed(0)}</div></div>
-        <div class="dash-item"><div class="dash-label">💵 已分润(迷人30%)</div><div class="dash-value" style="color:#fdcb6e">¥${cMrPaid.toFixed(2)}</div></div>
-      </div>
-      <div class="dash-grid" style="margin-top:10px">
-        <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${cCost.toFixed(0)}</div></div>
-        <div class="dash-item"><div class="dash-label">手续费(拨出)</div><div class="dash-value red">¥${cFee.toFixed(2)}</div></div>
-        <div class="dash-item"><div class="dash-label">可分配利润</div><div class="dash-value" style="color:#e0e0e0">¥${cProfit.toFixed(2)}</div></div>
-      </div>
-      <div class="dash-grid" style="margin-top:6px">
-        <div class="dash-item"><div class="dash-label">迷人30%</div><div class="dash-value purple">¥${cMr.toFixed(2)}</div></div>
-        <div class="dash-item"><div class="dash-label">💰 我的收入70%</div><div class="dash-value green">¥${cIncome.toFixed(2)}</div></div>
+      <div class="money-grid">
+        <div class="money-item"><div class="money-label">订单总额</div><div class="money-value" style="color:#ffd700">¥${cTotal.toFixed(0)}</div></div>
+        <div class="money-item"><div class="money-label">⏳ 待收货</div><div class="money-value" style="color:#fdcb6e">¥${cPending.toFixed(0)}</div></div>
+        <div class="money-item"><div class="money-label">✅ 已收货</div><div class="money-value" style="color:#00b894">¥${cReceived.toFixed(0)}</div></div>
+        <div class="money-item"><div class="money-label">💰 已交付</div><div class="money-value" style="color:#a29bfe">¥${cDelivered.toFixed(0)}</div></div>
+        <div class="money-item"><div class="money-label">成本</div><div class="money-value" style="color:#555">¥${cCost.toFixed(0)}</div></div>
+        <div class="money-item"><div class="money-label">手续费拨出</div><div class="money-value" style="color:#ff6b6b">¥${cFee.toFixed(2)}</div></div>
+        <div class="money-item"><div class="money-label">可分配利润</div><div class="money-value" style="color:#ddd">¥${cProfit.toFixed(2)}</div></div>
+        <div class="money-item"><div class="money-label">💵 已分润(迷人30%)</div><div class="money-value" style="color:#fdcb6e">¥${cMrPaid.toFixed(2)}</div></div>
       </div>
     </div>`;
 
-    // Order list
-    html += `<div class="creator-card">`;
+    // Orders list
+    html += `<div class="section-card"><div class="section-title">📋 ${displayName} 的订单</div>`;
     list.forEach(o => {
       const b = calcBreakdown(o.amount, o.creator, o.plan);
       const statusIcon = o.status === '已交付' ? '💰' : o.status === '已收货' ? '✅' : '⏳';
       html += `<div class="order-item">
-        <div class="order-top">
+        <div class="order-head">
           <span class="order-plan">${statusIcon} ${o.plan}</span>
           <span class="order-amount">¥${o.amount.toFixed(0)}</span>
         </div>
@@ -399,16 +412,16 @@ function renderSummary() {
             <div class="bk-row mine"><span>└ 💰 我的收入 70%</span><span>¥${b.myIncome.toFixed(2)}</span></div>
           </div>
         </div>
-        <div class="order-time">${new Date(o.createdAt).toLocaleString('zh-CN')}</div>
-        <div class="status-toggle">
-          <label>状态：</label>
+        <div class="status-row">
+          <span class="status-label">状态</span>
           <select class="status-select" onchange="updateStatus('${o.id}', this.value)" ${o.status==='已交付'?'disabled':''}>
             <option value="未收货" ${o.status==='未收货'?'selected':''}>📦 未收货</option>
             <option value="已收货" ${o.status==='已收货'?'selected':''}>✅ 已收货</option>
             <option value="已交付" ${o.status==='已交付'?'selected':''}>💰 已交付（已分钱）</option>
           </select>
-          ${o.status==='已交付'?'<span style="font-size:11px;color:#00b894;margin-left:4px">🔒 已锁定</span>':''}
+          ${o.status==='已交付'?'<span class="lock-badge">🔒 已锁定</span>':''}
         </div>
+        <div class="order-time">${new Date(o.createdAt).toLocaleString('zh-CN')}</div>
       </div>`;
     });
     html += '</div>';
@@ -436,8 +449,7 @@ async function updateStatus(id, status) {
   }
   try {
     const res = await fetch(API, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status })
     });
     if (!res.ok) throw new Error(await res.text());
@@ -450,6 +462,5 @@ async function updateStatus(id, status) {
   }
 }
 </script>
-
 </body>
 </html>
