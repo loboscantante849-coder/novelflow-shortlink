@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>订单管理 - NovelFlow</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+
+.header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 20px; text-align: center; border-bottom: 1px solid #333; }
+.header h1 { font-size: 20px; color: #fff; }
+.header p { font-size: 13px; color: #888; margin-top: 4px; }
+
+.container { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+/* Tab switch */
+.tabs { display: flex; gap: 0; margin-bottom: 16px; background: #1a1a2e; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
+.tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; color: #888; }
+.tab.active { background: #6c5ce7; color: #fff; }
+
+/* Form */
+.form-card { background: #1a1a2e; border-radius: 12px; padding: 20px; border: 1px solid #333; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; }
+.form-group input, .form-group select { width: 100%; padding: 12px; background: #0f0f1a; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; outline: none; }
+.form-group input:focus, .form-group select:focus { border-color: #6c5ce7; }
+.form-group select option { background: #1a1a2e; }
+
+/* Plan checkboxes */
+.plan-options { display: flex; flex-direction: column; gap: 10px; }
+.plan-option { display: flex; align-items: center; gap: 10px; padding: 12px; background: #0f0f1a; border: 1px solid #333; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+.plan-option:has(input:checked) { border-color: #6c5ce7; background: #1e1040; }
+.plan-option input { width: 18px; height: 18px; accent-color: #6c5ce7; }
+.plan-option span { font-size: 14px; }
+.plan-option .price { margin-left: auto; color: #6c5ce7; font-weight: 600; font-size: 14px; }
+
+.submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Summary */
+.summary-section { margin-bottom: 16px; }
+.creator-card { background: #1a1a2e; border-radius: 12px; padding: 16px; border: 1px solid #333; margin-bottom: 12px; }
+.creator-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.creator-name { font-size: 16px; font-weight: 700; color: #fff; }
+.creator-total { font-size: 14px; color: #6c5ce7; font-weight: 600; }
+
+.order-item { background: #0f0f1a; border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid #222; }
+.order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.order-plan { font-size: 14px; font-weight: 600; }
+.order-amount { font-size: 14px; color: #ffd700; }
+.order-phone { font-size: 12px; color: #888; }
+.order-time { font-size: 11px; color: #555; margin-top: 4px; }
+
+.status-toggle { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.status-toggle label { font-size: 12px; color: #aaa; }
+.status-select { padding: 4px 8px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 12px; }
+.status-已收货 { color: #00b894; }
+.status-未收货 { color: #fdcb6e; }
+
+.empty { text-align: center; padding: 40px; color: #555; font-size: 14px; }
+
+/* Toast */
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #00b894; color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 14px; z-index: 999; display: none; }
+.toast.error { background: #e74c3c; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 订单管理</h1>
+  <p>NovelFlow 内部订单记录</p>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('add')">新增订单</div>
+    <div class="tab" onclick="switchTab('summary')">订单汇总</div>
+  </div>
+
+  <!-- Add Order -->
+  <div id="addPanel">
+    <div class="form-card">
+      <div class="form-group">
+        <label>开单人</label>
+        <select id="creator">
+          <option value="">选择开单人</option>
+          <option value="波比">波比</option>
+          <option value="周总">周总</option>
+          <option value="迷人">迷人</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>订单手机号</label>
+        <input type="tel" id="phone" placeholder="输入手机号" maxlength="11">
+      </div>
+      <div class="form-group">
+        <label>选择版本</label>
+        <div class="plan-options">
+          <label class="plan-option">
+            <input type="radio" name="plan" value="个人高阶版">
+            <span>个人高阶版</span>
+            <span class="price">¥70</span>
+          </label>
+          <label class="plan-option">
+            <input type="radio" name="plan" value="个人旗舰版">
+            <span>个人旗舰版</span>
+            <span class="price">¥120</span>
+          </label>
+          <label class="plan-option">
+            <input type="radio" name="plan" value="个人尊享版">
+            <span>个人尊享版</span>
+            <span class="price">待定</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>订单金额 (元)</label>
+        <input type="number" id="amount" placeholder="输入金额" step="0.01">
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitOrder()">提交订单</button>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div id="summaryPanel" style="display:none">
+    <div id="summaryContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api/orders';
+let orders = [];
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (tab === 'add') {
+    document.querySelectorAll('.tab')[0].classList.add('active');
+    document.getElementById('addPanel').style.display = '';
+    document.getElementById('summaryPanel').style.display = 'none';
+  } else {
+    document.querySelectorAll('.tab')[1].classList.add('active');
+    document.getElementById('addPanel').style.display = 'none';
+    document.getElementById('summaryPanel').style.display = '';
+    loadSummary();
+  }
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+async function submitOrder() {
+  const creator = document.getElementById('creator').value;
+  const phone = document.getElementById('phone').value.trim();
+  const planEl = document.querySelector('input[name="plan"]:checked');
+  const amount = document.getElementById('amount').value;
+
+  if (!creator) return showToast('请选择开单人', true);
+  if (!phone) return showToast('请输入手机号', true);
+  if (!planEl) return showToast('请选择版本', true);
+  if (!amount) return showToast('请输入金额', true);
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ creator, phone, plan: planEl.value, amount })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    showToast('订单提交成功！');
+    // Reset form
+    document.getElementById('creator').value = '';
+    document.getElementById('phone').value = '';
+    document.querySelectorAll('input[name="plan"]').forEach(r => r.checked = false);
+    document.getElementById('amount').value = '';
+  } catch (e) {
+    showToast('提交失败: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '提交订单';
+  }
+}
+
+async function loadSummary() {
+  try {
+    const res = await fetch(API);
+    orders = await res.json();
+  } catch (e) {
+    orders = [];
+  }
+
+  const container = document.getElementById('summaryContent');
+  if (!orders.length) {
+    container.innerHTML = '<div class="empty">暂无订单</div>';
+    return;
+  }
+
+  // Group by creator
+  const groups = {};
+  orders.forEach(o => {
+    if (!groups[o.creator]) groups[o.creator] = [];
+    groups[o.creator].push(o);
+  });
+
+  let html = '';
+  for (const [creator, list] of Object.entries(groups)) {
+    const total = list.reduce((s, o) => s + o.amount, 0);
+    const received = list.filter(o => o.status === '已收货').length;
+    html += `<div class="creator-card">
+      <div class="creator-header">
+        <span class="creator-name">${creator}</span>
+        <span class="creator-total">合计 ¥${total.toFixed(2)} | ${received}/${list.length} 已收货</span>
+      </div>`;
+    list.forEach(o => {
+      html += `<div class="order-item">
+        <div class="order-top">
+          <span class="order-plan">${o.plan}</span>
+          <span class="order-amount">¥${o.amount.toFixed(2)}</span>
+        </div>
+        <div class="order-phone">📱 ${o.phone}</div>
+        <div class="order-time">${new Date(o.createdAt).toLocaleString('zh-CN')}</div>
+        <div class="status-toggle">
+          <label>状态：</label>
+          <select class="status-select" onchange="updateStatus('${o.id}', this.value)">
+            <option value="未收货" ${o.status==='未收货'?'selected':''}>📦 未收货</option>
+            <option value="已收货" ${o.status==='已收货'?'selected':''}>✅ 已收货</option>
+          </select>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+async function updateStatus(id, status) {
+  try {
+    const res = await fetch(API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    showToast('状态已更新');
+  } catch (e) {
+    showToast('更新失败: ' + e.message, true);
+  }
+}
+</script>
+
+</body>
+</html>
