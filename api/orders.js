@@ -1,54 +1,42 @@
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const REPO = "loboscantante849-coder/novelflow-shortlink";
-const FILE_PATH = "orders.json";
-const API = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`;
+const KV_URL = process.env.KV_REST_API_URL;
+const KV_TOKEN = process.env.KV_REST_API_TOKEN;
+const KV_KEY = "nf_orders";
 
-async function getOrders() {
-  const res = await fetch(`${API}?ref=main`, {
-    headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: "application/vnd.github.v3+json" }
+async function kv(command, ...args) {
+  const res = await fetch(`${KV_URL}/${command}/${args.join("/")}`, {
+    headers: { Authorization: `Bearer ${KV_TOKEN}` }
   });
-  if (res.status === 404) return { orders: [], sha: null };
   const data = await res.json();
-  const orders = JSON.parse(Buffer.from(data.content, "base64").toString());
-  return { orders, sha: data.sha };
+  return data.result;
 }
 
-async function saveOrders(orders, sha) {
-  const content = Buffer.from(JSON.stringify(orders, null, 2)).toString("base64");
-  const body = { message: "Update orders", content, branch: "main" };
-  if (sha) body.sha = sha;
-  const res = await fetch(API, {
-    method: "PUT",
-    headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: "application/vnd.github.v3+json", "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(`GitHub save failed: ${err.message}`);
-  }
-  return res.json();
+async function getOrders() {
+  const raw = await kv("get", KV_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+async function saveOrders(orders) {
+  await kv("set", KV_KEY, JSON.stringify(orders));
 }
 
 module.exports = async function handler(req, res) {
-  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
 
   try {
-    const { orders, sha } = await getOrders();
-
     if (req.method === "GET") {
+      const orders = await getOrders();
       return res.status(200).json(orders);
     }
 
     if (req.method === "POST") {
-      // Add new order
       const { creator, phone, plan, amount } = req.body;
       if (!creator || !phone || !plan || !amount) {
         return res.status(400).json({ error: "Missing required fields" });
       }
+      const orders = await getOrders();
       const order = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
         creator,
@@ -59,21 +47,30 @@ module.exports = async function handler(req, res) {
         createdAt: new Date().toISOString()
       };
       orders.push(order);
-      await saveOrders(orders, sha);
+      await saveOrders(orders);
       return res.status(201).json(order);
     }
 
     if (req.method === "PUT") {
-      // Update order status
       const { id, status } = req.body;
       if (!id || !status) {
         return res.status(400).json({ error: "Missing id or status" });
       }
+      const orders = await getOrders();
       const order = orders.find(o => o.id === id);
       if (!order) return res.status(404).json({ error: "Order not found" });
       order.status = status;
-      await saveOrders(orders, sha);
+      await saveOrders(orders);
       return res.status(200).json(order);
+    }
+
+    if (req.method === "DELETE") {
+      const { id } = req.body;
+      if (!id) return res.status(400).json({ error: "Missing id" });
+      let orders = await getOrders();
+      orders = orders.filter(o => o.id !== id);
+      await saveOrders(orders);
+      return res.status(200).json({ ok: true });
     }
 
     return res.status(405).json({ error: "Method not allowed" });
