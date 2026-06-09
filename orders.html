@@ -57,8 +57,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .filter-chip input { width: 14px; height: 14px; accent-color: #6c5ce7; }
 
 .creator-card { background: #1a1a2e; border-radius: 12px; padding: 16px; border: 1px solid #333; margin-bottom: 12px; }
-.creator-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.creator-name { font-size: 16px; font-weight: 700; color: #fff; }
 
 .order-item { background: #0f0f1a; border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid #222; }
 .order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
@@ -67,8 +65,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .order-phone { font-size: 12px; color: #888; }
 .order-time { font-size: 11px; color: #555; margin-top: 4px; }
 
-.income-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; color: #aaa; }
-.income-row.highlight { color: #00b894; font-weight: 600; font-size: 13px; }
+.breakdown { margin-top: 8px; border-top: 1px dashed #333; padding-top: 8px; }
+.bk-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; color: #aaa; }
+.bk-row.total { color: #e0e0e0; font-weight: 600; font-size: 13px; border-top: 1px solid #444; margin-top: 4px; padding-top: 6px; }
+.bk-split { padding-left: 16px; }
+.bk-split .bk-row { color: #bbb; }
+.bk-row.mine { color: #00b894; font-weight: 600; font-size: 13px; }
+.bk-row.mr { color: #a29bfe; }
+.bk-row.fee { color: #ff6b6b; }
+.bk-row.cost { color: #888; }
 
 .status-toggle { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .status-toggle label { font-size: 12px; color: #aaa; }
@@ -157,7 +162,6 @@ const PLAN_INFO = {
   '个人尊享版': { price: 0, cost: 0 }
 };
 
-// 所有人都有咸鱼手续费
 const FEE_RATE = {
   '波比': 0.016,
   '周众（孙尚香人柱力）': 0.006,
@@ -168,7 +172,6 @@ const MR_RATE = 0.30;
 
 let activeCreators = new Set();
 
-// Auto-fill amount when plan selected
 document.querySelectorAll('input[name="plan"]').forEach(el => {
   el.addEventListener('change', () => {
     const price = parseInt(el.dataset.price);
@@ -297,9 +300,12 @@ function renderSummary() {
     </div>
     <div class="dash-grid" style="margin-top:10px">
       <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${gCost.toFixed(0)}</div></div>
-      <div class="dash-item"><div class="dash-label">咸鱼手续费</div><div class="dash-value red">-¥${gFee.toFixed(2)}</div></div>
-      <div class="dash-item"><div class="dash-label">迷人技术支持(30%)</div><div class="dash-value purple">¥${gMr.toFixed(2)}</div></div>
-      <div class="dash-item"><div class="dash-label">💰 个人收入合计(70%)</div><div class="dash-value green">¥${gIncome.toFixed(2)}</div></div>
+      <div class="dash-item"><div class="dash-label">手续费(拨出)</div><div class="dash-value red">¥${gFee.toFixed(2)}</div></div>
+      <div class="dash-item"><div class="dash-label">可分配利润</div><div class="dash-value" style="color:#e0e0e0">¥${gProfit.toFixed(2)}</div></div>
+    </div>
+    <div class="dash-grid" style="margin-top:6px">
+      <div class="dash-item"><div class="dash-label">迷人30%</div><div class="dash-value purple">¥${gMr.toFixed(2)}</div></div>
+      <div class="dash-item"><div class="dash-label">💰 个人70%</div><div class="dash-value green">¥${gIncome.toFixed(2)}</div></div>
     </div>
   </div>`;
 
@@ -311,13 +317,14 @@ function renderSummary() {
   });
 
   for (const [creator, list] of Object.entries(groups)) {
-    let cTotal = 0, cCost = 0, cFee = 0, cMr = 0, cIncome = 0;
+    let cTotal = 0, cCost = 0, cFee = 0, cProfit = 0, cMr = 0, cIncome = 0;
     let cReceived = 0, cPending = 0, cRecCount = 0;
     list.forEach(o => {
       const b = calcBreakdown(o.amount, o.creator, o.plan);
       cTotal += o.amount;
       cCost += b.cost;
       cFee += b.fee;
+      cProfit += b.profit;
       cMr += b.mrCut;
       cIncome += b.myIncome;
       if (o.status === '已收货') { cReceived += o.amount; cRecCount++; }
@@ -325,10 +332,9 @@ function renderSummary() {
     });
 
     const feeRate = FEE_RATE[creator] || 0;
-    const feeLabel = `咸鱼手续费${(feeRate*100).toFixed(1)}%`;
 
     html += `<div class="dash-card">
-      <div class="dash-title">👤 ${creator} <span style="font-size:11px;color:#888;font-weight:400">${feeLabel} | ${cRecCount}/${list.length} 已收货</span></div>
+      <div class="dash-title">👤 ${creator} <span style="font-size:11px;color:#888;font-weight:400">手续费${(feeRate*100).toFixed(1)}% | ${cRecCount}/${list.length} 已收货</span></div>
       <div class="dash-grid three">
         <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${cTotal.toFixed(0)}</div></div>
         <div class="dash-item"><div class="dash-label">✅ 已收货</div><div class="dash-value green">¥${cReceived.toFixed(0)}</div></div>
@@ -336,9 +342,12 @@ function renderSummary() {
       </div>
       <div class="dash-grid" style="margin-top:10px">
         <div class="dash-item"><div class="dash-label">成本</div><div class="dash-value" style="color:#888">¥${cCost.toFixed(0)}</div></div>
-        <div class="dash-item"><div class="dash-label">咸鱼手续费</div><div class="dash-value red">-¥${cFee.toFixed(2)}</div></div>
-        <div class="dash-item"><div class="dash-label">迷人技术支持(30%)</div><div class="dash-value purple">¥${cMr.toFixed(2)}</div></div>
-        <div class="dash-item"><div class="dash-label">💰 我的收入(70%)</div><div class="dash-value green">¥${cIncome.toFixed(2)}</div></div>
+        <div class="dash-item"><div class="dash-label">手续费(拨出)</div><div class="dash-value red">¥${cFee.toFixed(2)}</div></div>
+        <div class="dash-item"><div class="dash-label">可分配利润</div><div class="dash-value" style="color:#e0e0e0">¥${cProfit.toFixed(2)}</div></div>
+      </div>
+      <div class="dash-grid" style="margin-top:6px">
+        <div class="dash-item"><div class="dash-label">迷人30%</div><div class="dash-value purple">¥${cMr.toFixed(2)}</div></div>
+        <div class="dash-item"><div class="dash-label">💰 我的收入70%</div><div class="dash-value green">¥${cIncome.toFixed(2)}</div></div>
       </div>
     </div>`;
 
@@ -353,12 +362,14 @@ function renderSummary() {
           <span class="order-amount">¥${o.amount.toFixed(0)}</span>
         </div>
         <div class="order-phone">📱 ${o.phone}</div>
-        <div style="margin-top:6px; border-top:1px solid #222; padding-top:6px;">
-          <div class="income-row"><span>成本</span><span>-¥${b.cost.toFixed(0)}</span></div>
-          <div class="income-row"><span>咸鱼手续费(${(b.feeRate*100).toFixed(1)}%)</span><span>-¥${b.fee.toFixed(2)}</span></div>
-          <div class="income-row"><span>利润</span><span>¥${b.profit.toFixed(2)}</span></div>
-          <div class="income-row"><span>迷人技术支持(30%)</span><span>-¥${b.mrCut.toFixed(2)}</span></div>
-          <div class="income-row highlight"><span>💰 我的收入(70%)</span><span>¥${b.myIncome.toFixed(2)}</span></div>
+        <div class="breakdown">
+          <div class="bk-row cost"><span>成本</span><span>-¥${b.cost.toFixed(0)}</span></div>
+          <div class="bk-row fee"><span>咸鱼手续费(${(b.feeRate*100).toFixed(1)}%) 拨出</span><span>-¥${b.fee.toFixed(2)}</span></div>
+          <div class="bk-row total"><span>可分配利润</span><span>¥${b.profit.toFixed(2)}</span></div>
+          <div class="bk-split">
+            <div class="bk-row mr"><span>├ 迷人技术支持 30%</span><span>¥${b.mrCut.toFixed(2)}</span></div>
+            <div class="bk-row mine"><span>└ 💰 我的收入 70%</span><span>¥${b.myIncome.toFixed(2)}</span></div>
+          </div>
         </div>
         <div class="order-time">${new Date(o.createdAt).toLocaleString('zh-CN')}</div>
         <div class="status-toggle">
