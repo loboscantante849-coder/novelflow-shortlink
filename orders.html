@@ -288,7 +288,7 @@ function renderSummary() {
 
   // Global dashboard
   let gTotal = 0, gCost = 0, gFee = 0, gProfit = 0, gMr = 0, gIncome = 0;
-  let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0, gMrPaid = 0;
+  let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0, gMrPaid = 0, gTotalCount = 0, gDoneCount = 0, gActiveCount = 0;
   filtered.forEach(o => {
     const b = calcBreakdown(o.amount, o.creator, o.plan);
     gTotal += o.amount;
@@ -297,13 +297,19 @@ function renderSummary() {
     gProfit += b.profit;
     gMr += b.mrCut;
     gIncome += b.myIncome;
-    if (o.status === '已交付') { gDelivered += o.amount; gDeliveredCount++; gMrPaid += b.mrCut; }
-    else if (o.status === '已收货') gReceived += o.amount;
-    else gPending += o.amount;
+    gTotalCount++;
+    if (o.status === '已交付') { gDelivered += o.amount; gDeliveredCount++; gMrPaid += b.mrCut; gDoneCount++; }
+    else if (o.status === '已收货') { gReceived += o.amount; gActiveCount++; }
+    else { gPending += o.amount; gActiveCount++; }
   });
 
   html += `<div class="dash-card">
     <div class="dash-title">📊 总览</div>
+    <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="dash-item" style="padding:16px"><div class="dash-label" style="font-size:12px">总订单</div><div class="dash-value" style="font-size:32px;color:#e0e0e0">${gTotalCount}</div></div>
+      <div class="dash-item" style="padding:16px"><div class="dash-label" style="font-size:12px">🔴 进行中</div><div class="dash-value" style="font-size:32px;color:#ff6b6b">${gActiveCount}</div></div>
+      <div class="dash-item" style="padding:16px"><div class="dash-label" style="font-size:12px">🟢 已完结</div><div class="dash-value" style="font-size:32px;color:#00b894">${gDoneCount}</div></div>
+    </div>
     <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
       <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${gTotal.toFixed(0)}</div></div>
       <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${gPending.toFixed(0)}</div></div>
@@ -331,7 +337,7 @@ function renderSummary() {
 
   for (const [creator, list] of Object.entries(groups)) {
     let cTotal = 0, cCost = 0, cFee = 0, cProfit = 0, cMr = 0, cIncome = 0;
-    let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0, cMrPaid = 0;
+    let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0, cMrPaid = 0, cTotalCount = 0, cDoneCount = 0, cActiveCount = 0;
     list.forEach(o => {
       const b = calcBreakdown(o.amount, o.creator, o.plan);
       cTotal += o.amount;
@@ -340,15 +346,21 @@ function renderSummary() {
       cProfit += b.profit;
       cMr += b.mrCut;
       cIncome += b.myIncome;
-      if (o.status === '已交付') { cDelivered += o.amount; cDeliveredCount++; cMrPaid += b.mrCut; }
-      else if (o.status === '已收货') { cReceived += o.amount; cRecCount++; }
-      else cPending += o.amount;
+      cTotalCount++;
+      if (o.status === '已交付') { cDelivered += o.amount; cDeliveredCount++; cMrPaid += b.mrCut; cDoneCount++; }
+      else if (o.status === '已收货') { cReceived += o.amount; cRecCount++; cActiveCount++; }
+      else { cPending += o.amount; cActiveCount++; }
     });
 
     const feeRate = FEE_RATE[creator] || 0;
 
     html += `<div class="dash-card">
-      <div class="dash-title">👤 ${getDisplayName(creator)} <span style="font-size:11px;color:#888;font-weight:400">手续费${(feeRate*100).toFixed(1)}% | 已交付${cDeliveredCount} 已收货${cRecCount} 待收货${list.length-cRecCount-cDeliveredCount}</span></div>
+      <div class="dash-title">👤 ${getDisplayName(creator)} <span style="font-size:11px;color:#888;font-weight:400">手续费${(feeRate*100).toFixed(1)}%</span></div>
+      <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="dash-item" style="padding:14px"><div class="dash-label" style="font-size:12px">总订单</div><div class="dash-value" style="font-size:28px;color:#e0e0e0">${cTotalCount}</div></div>
+        <div class="dash-item" style="padding:14px"><div class="dash-label" style="font-size:12px">🔴 进行中</div><div class="dash-value" style="font-size:28px;color:#ff6b6b">${cActiveCount}</div></div>
+        <div class="dash-item" style="padding:14px"><div class="dash-label" style="font-size:12px">🟢 已完结</div><div class="dash-value" style="font-size:28px;color:#00b894">${cDoneCount}</div></div>
+      </div>
       <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
         <div class="dash-item"><div class="dash-label">订单总额</div><div class="dash-value gold">¥${cTotal.toFixed(0)}</div></div>
         <div class="dash-item"><div class="dash-label">⏳ 待收货</div><div class="dash-value orange">¥${cPending.toFixed(0)}</div></div>
