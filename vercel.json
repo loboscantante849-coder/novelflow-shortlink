@@ -5,5 +5,11 @@
       "destination": "https://code.coze.cn/subscription-paywall?dist_channel=10002&distributor_id=20024",
       "permanent": false
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/orders",
+      "destination": "/orders.html"
+    }
   ]
 }
