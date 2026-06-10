@@ -149,13 +149,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 }
 .sf-chip.active { border-color: #6c5ce7; color: #fff; background: #1a0f35; }
 
-.filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-.filter-chip {
-  display: flex; align-items: center; gap: 4px; padding: 8px 14px;
-  background: #12121e; border: 1px solid #1e1e35; border-radius: 20px;
-  cursor: pointer; font-size: 13px; transition: all 0.2s; color: #666;
-}
-.filter-chip.active { border-color: #6c5ce7; color: #fff; background: #1a0f35; }
+.creator-tabs { display:flex; gap:6px; margin:12px 0; overflow-x:auto; padding-bottom:4px; }
+.ctab { padding:8px 18px; border-radius:20px; border:1px solid #333; background:#1a1a1a; color:#888; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition:all .15s; }
+.ctab:hover { border-color:#555; color:#bbb; }
+.ctab.active { border-color:#6c5ce7; color:#fff; background:#1a0f35; }
 
 /* Order list */
 .order-item {
@@ -282,7 +279,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 
   <div id="dailyPanel" style="display:none">
-    <div class="filter-bar" id="dailyFilterBar"></div>
+    <div class="creator-tabs" id="dailyFilterBar"></div>
     <div id="dailyContent"></div>
   </div>
 
@@ -305,7 +302,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="sf-chip" data-status="已交付" onclick="setStatusFilter('已交付')">💰 已交付</div>
     </div>
 
-    <div class="filter-bar" id="filterBar"></div>
+    <div class="creator-tabs" id="creatorTabs"></div>
     <div id="summaryContent"></div>
   </div>
 </div>
@@ -346,7 +343,7 @@ function getFeeCreator(c) {
 }
 
 const MR_RATE = 0.30;
-let activeCreators = new Set();
+let selectedCreator = 'all'; // 'all' or specific creator name
 
 document.querySelectorAll('input[name="plan"]').forEach(el => {
   el.addEventListener('change', () => {
@@ -440,35 +437,35 @@ const CREATOR_COLORS = {
 
 function getCreatorColor(c) { return CREATOR_COLORS[c] || { bg: '#1a0f35', border: '#6c5ce7', text: '#fff' }; }
 
-function renderFilters() {
+function renderCreatorTabs() {
   const creators = [...new Set(orders.filter(o => o.status !== 'draft').map(o => o.creator))];
-  const bar = document.getElementById('filterBar');
-  bar.innerHTML = '';
+  const bar = document.getElementById('creatorTabs');
+  let html = `<div class="ctab ${selectedCreator==='all'?'active':''}" onclick="selectCreator('all')">👥 全部</div>`;
   creators.forEach(c => {
-    if (!activeCreators.has(c)) activeCreators.add(c);
     const cc = getCreatorColor(c);
-    const isActive = activeCreators.has(c);
-    const chip = document.createElement('div');
-    chip.className = 'filter-chip' + (isActive ? ' active' : '');
-    chip.style.cssText = isActive
-      ? `background:${cc.bg};border-color:${cc.border};color:${cc.text}`
-      : '';
-    chip.textContent = getDisplayName(c);
-    chip.onclick = () => { toggleFilter(c, !activeCreators.has(c)); };
-    bar.appendChild(chip);
+    const name = getDisplayName(c);
+    const active = selectedCreator === c;
+    html += `<div class="ctab ${active?'active':''}" style="${active?`background:${cc.bg};border-color:${cc.border};color:${cc.text}`:''}" onclick="selectCreator('${c}')">${name}</div>`;
   });
+  bar.innerHTML = html;
+}
+
+function selectCreator(c) {
+  selectedCreator = c;
+  renderCreatorTabs();
+  renderSummary();
 }
 
 function toggleFilter(creator, checked) {
-  if (checked) activeCreators.add(creator);
-  else activeCreators.delete(creator);
+  selectedCreator = checked ? creator : 'all';
+  renderCreatorTabs();
   renderSummary();
 }
 
 function getFilteredOrders() {
   return orders.filter(o => {
     if (o.status === 'draft') return false;
-    if (!activeCreators.has(o.creator)) return false;
+    if (selectedCreator !== 'all' && o.creator !== selectedCreator && getDisplayName(o.creator) !== selectedCreator) return false;
     if (statusFilter !== 'all' && o.status !== statusFilter) return false;
     const search = (document.getElementById('phoneSearch').value || '').trim();
     if (search && !o.phone.includes(search)) return false;
@@ -502,7 +499,8 @@ function renderSummary() {
 
   let html = '';
 
-  // === Global overview ===
+  // Only show global overview when "all" selected
+  if (selectedCreator === 'all') {
   let gTotal = 0, gCost = 0, gFee = 0, gProfit = 0, gMr = 0, gIncome = 0;
   let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0, gMrPaid = 0;
   let gConfirmedIncome = 0, gConfirmedMr = 0; // 已收货+已交付
@@ -563,6 +561,7 @@ function renderSummary() {
       <div class="money-item"><div class="money-label">💵 已分润(已交付)</div><div class="money-value" style="color:#fdcb6e">¥${gMrPaid.toFixed(2)}</div></div>
     </div>
   </div>`;
+  } // end if selectedCreator === 'all'
 
   // === Per-creator hero panel ===
   const groups = {};
@@ -689,7 +688,7 @@ async function loadSummary() {
     orders = [];
   }
   renderDrafts();
-  renderFilters();
+  renderCreatorTabs();
   renderSummary();
 }
 
@@ -728,7 +727,7 @@ async function confirmDraft(id) {
     const o = orders.find(x => x.id === id);
     if (o) o.status = '未收货';
     renderDrafts();
-    renderFilters();
+    renderCreatorTabs();
     renderSummary();
   } catch (e) {
     showToast('确认失败: ' + e.message, true);
@@ -746,7 +745,7 @@ async function deleteDraft(id) {
     showToast('拟定订单已删除');
     orders = orders.filter(o => o.id !== id);
     renderDrafts();
-    renderFilters();
+    renderCreatorTabs();
     renderSummary();
   } catch (e) {
     showToast('删除失败: ' + e.message, true);
@@ -776,49 +775,53 @@ async function updateStatus(id, status) {
 }
 
 // ========== Daily View ==========
-let dailyActiveCreators = new Set();
+let dailySelectedCreator = 'all';
 
 function loadDaily() {
   if (!orders.length) {
     fetch(API).then(r => r.json()).then(data => {
       orders = data;
-      renderDailyFilters();
+      renderDailyTabs();
       renderDaily();
     }).catch(() => {});
   } else {
-    renderDailyFilters();
+    renderDailyTabs();
     renderDaily();
   }
 }
 
-function renderDailyFilters() {
+function renderDailyTabs() {
   const creators = [...new Set(orders.filter(o => o.status !== 'draft').map(o => o.creator))];
   const bar = document.getElementById('dailyFilterBar');
-  bar.innerHTML = '';
-  if (!dailyActiveCreators.size) creators.forEach(c => dailyActiveCreators.add(c));
+  let html = `<div class="ctab ${dailySelectedCreator==='all'?'active':''}" onclick="selectDailyCreator('all')">👥 全部</div>`;
   creators.forEach(c => {
     const cc = getCreatorColor(c);
-    const isActive = dailyActiveCreators.has(c);
-    const chip = document.createElement('div');
-    chip.className = 'filter-chip' + (isActive ? ' active' : '');
-    chip.style.cssText = isActive
-      ? `background:${cc.bg};border-color:${cc.border};color:${cc.text}`
-      : '';
-    chip.textContent = getDisplayName(c);
-    chip.onclick = () => { toggleDailyFilter(c, !dailyActiveCreators.has(c)); };
-    bar.appendChild(chip);
+    const name = getDisplayName(c);
+    const active = dailySelectedCreator === c;
+    html += `<div class="ctab ${active?'active':''}" style="${active?`background:${cc.bg};border-color:${cc.border};color:${cc.text}`:''}" onclick="selectDailyCreator('${c}')">${name}</div>`;
   });
+  bar.innerHTML = html;
+}
+
+function selectDailyCreator(c) {
+  dailySelectedCreator = c;
+  renderDailyTabs();
+  renderDaily();
 }
 
 function toggleDailyFilter(creator, checked) {
-  if (checked) dailyActiveCreators.add(creator);
-  else dailyActiveCreators.delete(creator);
+  dailySelectedCreator = checked ? creator : 'all';
+  renderDailyTabs();
   renderDaily();
 }
 
 function renderDaily() {
   const container = document.getElementById('dailyContent');
-  const filtered = orders.filter(o => o.status !== 'draft' && dailyActiveCreators.has(o.creator));
+  const filtered = orders.filter(o => {
+    if (o.status === 'draft') return false;
+    if (dailySelectedCreator !== 'all' && o.creator !== dailySelectedCreator) return false;
+    return true;
+  });
 
   if (!filtered.length) {
     container.innerHTML = '<div class="empty">暂无订单</div>';
