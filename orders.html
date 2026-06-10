@@ -499,7 +499,7 @@ function renderSummary() {
     gTotalCount++;
     if (o.status === '已交付') {
       gDelivered += o.amount; gDeliveredCount++; gMrPaid += b.mrCut; gDoneCount++;
-      gConfirmedIncome += b.myIncome; gConfirmedMr += b.mrCut;
+      gConfirmedIncome += b.myIncome;
     } else if (o.status === '已收货') {
       gReceived += o.amount; gRecCount++; gActiveCount++;
       gConfirmedIncome += b.myIncome; gConfirmedMr += b.mrCut;
@@ -530,7 +530,7 @@ function renderSummary() {
       <div class="pc-val" data-anim="${gConfirmedIncome.toFixed(2)}">¥${gConfirmedIncome.toFixed(2)}</div>
     </div>
     <div class="fee-callout">
-      <div><div class="fc-label">🔥 需交付技术服务费</div><div class="fc-hint">已收货+已交付，不含未收货</div></div>
+      <div><div class="fc-label">🔥 待交付技术服务费</div><div class="fc-hint">仅已收货，已交付=已交过</div></div>
       <div class="fc-val" data-anim="${gConfirmedMr.toFixed(2)}">¥${gConfirmedMr.toFixed(2)}</div>
     </div>
   </div>`;
@@ -554,7 +554,7 @@ function renderSummary() {
       cTotalCount++;
       if (o.status === '已交付') {
         cDelivered += o.amount; cDeliveredCount++; cMrPaid += b.mrCut; cDoneCount++;
-        cConfirmedIncome += b.myIncome; cConfirmedMr += b.mrCut;
+        cConfirmedIncome += b.myIncome;
       } else if (o.status === '已收货') {
         cReceived += o.amount; cRecCount++; cActiveCount++;
         cConfirmedIncome += b.myIncome; cConfirmedMr += b.mrCut;
@@ -584,7 +584,7 @@ function renderSummary() {
       </div>
 
       <div class="fee-callout">
-        <div><div class="fc-label">🔥 需交付技术服务费</div><div class="fc-hint">已收货+已交付，不含未收货</div></div>
+        <div><div class="fc-label">🔥 待交付技术服务费</div><div class="fc-hint">仅已收货，已交付=已交过</div></div>
         <div class="fc-val">¥${cConfirmedMr.toFixed(2)}</div>
       </div>
     </div>`;
