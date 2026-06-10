@@ -120,7 +120,7 @@ async function writeBitableRecord(order) {
       "迷人30%": Math.round(b.mrCut * 100) / 100,
       "个人70%": Math.round(b.myIncome * 100) / 100,
       "状态": order.status,
-      "下单时间": order.createdAt ? Math.floor(new Date(order.createdAt).getTime() / 1000) : Math.floor(Date.now() / 1000),
+      "下单时间": order.createdAt ? new Date(order.createdAt).getTime() : Date.now(),
       "订单ID": order.id
     }
   };
