@@ -75,13 +75,80 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .stat-num.gold { color: #ffd700; }
 .stat-num.yellow { color: #fdcb6e; }
 
+/* === Personal Panel Hero === */
+.hero-panel {
+  background: linear-gradient(135deg, #1a0f35 0%, #12121e 50%, #0f1a12 100%);
+  border-radius: 16px; padding: 24px 20px; border: 1px solid #2a1f45;
+  margin-bottom: 16px; position: relative; overflow: hidden;
+}
+.hero-panel::before {
+  content: '¥'; position: absolute; right: -10px; top: -20px;
+  font-size: 120px; font-weight: 900; color: rgba(108,92,231,0.06);
+  pointer-events: none; line-height: 1;
+}
+.hero-name { font-size: 14px; color: #777; margin-bottom: 4px; }
+.hero-big { font-size: 44px; font-weight: 900; color: #00e676; line-height: 1.1; margin-bottom: 2px; }
+.hero-big .currency { font-size: 24px; color: #00c853; margin-right: 2px; }
+.hero-sub { font-size: 12px; color: #555; margin-bottom: 20px; }
+
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hero-item {
+  background: rgba(10,10,18,0.6); border-radius: 10px; padding: 12px;
+  text-align: center; border: 1px solid rgba(42,31,69,0.5);
+}
+.hero-item.full { grid-column: 1 / -1; }
+.hero-item-label { font-size: 10px; color: #555; margin-bottom: 4px; letter-spacing: 0.5px; }
+.hero-item-val { font-size: 18px; font-weight: 800; }
+.hero-item-val.g { color: #00e676; }
+.hero-item-val.y { color: #ffd700; }
+.hero-item-val.r { color: #ff6b6b; }
+.hero-item-val.p { color: #a29bfe; }
+.hero-item-val.w { color: #ddd; }
+.hero-item-val.o { color: #ff9800; }
+
+/* Fee callout */
+.fee-callout {
+  background: linear-gradient(135deg, #2a1a0a, #1a0f0f);
+  border: 1px solid #ff9800; border-radius: 12px; padding: 14px 16px;
+  margin-top: 12px; display: flex; justify-content: space-between; align-items: center;
+}
+.fee-callout .fc-label { font-size: 13px; color: #ff9800; font-weight: 600; }
+.fee-callout .fc-val { font-size: 22px; font-weight: 900; color: #ff9800; }
+.fee-callout .fc-hint { font-size: 10px; color: #b36b00; margin-top: 2px; }
+
+/* Profit callout */
+.profit-callout {
+  background: linear-gradient(135deg, #0a2a1a, #0f1a12);
+  border: 1px solid #00e676; border-radius: 12px; padding: 14px 16px;
+  margin-top: 10px; display: flex; justify-content: space-between; align-items: center;
+}
+.profit-callout .pc-label { font-size: 13px; color: #00e676; font-weight: 600; }
+.profit-callout .pc-val { font-size: 22px; font-weight: 900; color: #00e676; }
+
 /* Money grid */
 .money-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .money-item { background: #0a0a12; border-radius: 10px; padding: 12px; text-align: center; border: 1px solid #1a1a2e; }
 .money-label { font-size: 10px; color: #555; margin-bottom: 4px; }
 .money-value { font-size: 16px; font-weight: 700; }
 
-/* Filter */
+/* Search + Filter */
+.search-wrap { margin-bottom: 12px; }
+.search-input {
+  width: 100%; padding: 12px 16px 12px 40px; background: #12121e; border: 1px solid #1e1e35;
+  border-radius: 10px; color: #fff; font-size: 14px; outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 10-1.397 1.398h-.001l3.85 3.85a1 1 0 001.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 110-10 5 5 0 010 10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 14px center;
+}
+.search-input:focus { border-color: #6c5ce7; }
+.search-input::placeholder { color: #444; }
+
+.status-filters { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.sf-chip {
+  padding: 8px 14px; background: #12121e; border: 1px solid #1e1e35; border-radius: 20px;
+  cursor: pointer; font-size: 13px; transition: all 0.2s; color: #666;
+}
+.sf-chip.active { border-color: #6c5ce7; color: #fff; background: #1a0f35; }
+
 .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .filter-chip {
   display: flex; align-items: center; gap: 4px; padding: 8px 14px;
@@ -89,7 +156,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   cursor: pointer; font-size: 13px; transition: all 0.2s; color: #666;
 }
 .filter-chip.active { border-color: #6c5ce7; color: #fff; background: #1a0f35; }
-.filter-chip input { width: 14px; height: 14px; accent-color: #6c5ce7; }
 
 /* Order list */
 .order-item {
@@ -142,6 +208,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 }
 .draft-btn.confirm { background: #00b894; color: #fff; }
 .draft-btn.delete { background: #2d2d3f; color: #e17055; }
+
+/* Count-up animation */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.anim-in { animation: fadeUp 0.4s ease-out; }
 </style>
 </head>
 <body>
@@ -165,7 +235,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <select id="creator">
           <option value="">选择开单人</option>
           <option value="波比">波比</option>
-          <option value="周众（孙尚香人柱力）">周众</option>
+          <option value="周众">周众</option>
           <option value="迷人">迷人</option>
         </select>
       </div>
@@ -223,6 +293,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <div id="draftList"></div>
       </div>
     </div>
+
+    <!-- Search + Status Filter -->
+    <div class="search-wrap">
+      <input class="search-input" id="phoneSearch" placeholder="搜索手机号..." oninput="renderSummary()">
+    </div>
+    <div class="status-filters" id="statusFilters">
+      <div class="sf-chip active" data-status="all" onclick="setStatusFilter('all')">全部</div>
+      <div class="sf-chip" data-status="未收货" onclick="setStatusFilter('未收货')">⏳ 未收货</div>
+      <div class="sf-chip" data-status="已收货" onclick="setStatusFilter('已收货')">✅ 已收货</div>
+      <div class="sf-chip" data-status="已交付" onclick="setStatusFilter('已交付')">💰 已交付</div>
+    </div>
+
     <div class="filter-bar" id="filterBar"></div>
     <div id="summaryContent"></div>
   </div>
@@ -233,24 +315,37 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <script>
 const API = '/api/orders';
 let orders = [];
+let statusFilter = 'all';
 
 const PLAN_INFO = {
   '个人高阶版': { price: 75, cost: 45 },
   '个人旗舰版': { price: 120, cost: 89 },
-  '个人尊享版': { price: 0, cost: 0 }
+  '个人尊享版': { price: 0, cost: 0 },
+  '高阶年卡': { price: 0, cost: 0 },
+  '旗舰年卡': { price: 0, cost: 0 }
 };
 
 const FEE_RATE = {
   '波比': 0.016,
+  '周众': 0.006,
   '周众（孙尚香人柱力）': 0.006,
-
-  '迷人': 0.006
+  '周总': 0.006,
+  '迷人': 0.016
 };
 
-const DISPLAY_NAME = {};
-function getDisplayName(c) { return DISPLAY_NAME[c] || c; }
-const MR_RATE = 0.30;
+const DISPLAY_NAME = {
+  '周众（孙尚香人柱力）': '周众',
+  '周总': '周众'
+};
 
+function getDisplayName(c) { return DISPLAY_NAME[c] || c; }
+function getFeeCreator(c) {
+  // Normalize for fee lookup
+  if (c === '周众（孙尚香人柱力）' || c === '周总') return '周众';
+  return c;
+}
+
+const MR_RATE = 0.30;
 let activeCreators = new Set();
 
 document.querySelectorAll('input[name="plan"]').forEach(el => {
@@ -262,7 +357,7 @@ document.querySelectorAll('input[name="plan"]').forEach(el => {
 
 function calcBreakdown(amount, creator, plan) {
   const cost = (PLAN_INFO[plan] && PLAN_INFO[plan].cost) || 0;
-  const feeRate = FEE_RATE[creator] || 0;
+  const feeRate = FEE_RATE[creator] || FEE_RATE[getFeeCreator(creator)] || 0;
   const fee = amount * feeRate;
   const profit = amount - cost - fee;
   const mrCut = profit > 0 ? profit * MR_RATE : 0;
@@ -297,6 +392,14 @@ function showToast(msg, isError) {
   setTimeout(() => t.style.display = 'none', 2500);
 }
 
+function setStatusFilter(status) {
+  statusFilter = status;
+  document.querySelectorAll('.sf-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.status === status);
+  });
+  renderSummary();
+}
+
 async function submitOrder() {
   const creator = document.getElementById('creator').value;
   const phone = document.getElementById('phone').value.trim();
@@ -328,14 +431,14 @@ async function submitOrder() {
 }
 
 function renderFilters() {
-  const creators = [...new Set(orders.map(o => o.creator))];
+  const creators = [...new Set(orders.filter(o => o.status !== 'draft').map(o => o.creator))];
   const bar = document.getElementById('filterBar');
   bar.innerHTML = '';
   creators.forEach(c => {
     if (!activeCreators.has(c)) activeCreators.add(c);
     const chip = document.createElement('label');
     chip.className = 'filter-chip' + (activeCreators.has(c) ? ' active' : '');
-    chip.innerHTML = `<input type="checkbox" ${activeCreators.has(c)?'checked':''} onchange="toggleFilter('${c}', this.checked)"> ${getDisplayName(c)}`;
+    chip.innerHTML = `<input type="checkbox" ${activeCreators.has(c)?'checked':''} onchange="toggleFilter('${c}', this.checked)" style="display:none"> ${getDisplayName(c)}`;
     bar.appendChild(chip);
   });
 }
@@ -346,13 +449,38 @@ function toggleFilter(creator, checked) {
   renderSummary();
 }
 
+function getFilteredOrders() {
+  return orders.filter(o => {
+    if (o.status === 'draft') return false;
+    if (!activeCreators.has(o.creator)) return false;
+    if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+    const search = (document.getElementById('phoneSearch').value || '').trim();
+    if (search && !o.phone.includes(search)) return false;
+    return true;
+  });
+}
+
+// Animated counter
+function animNum(el, target, prefix = '', suffix = '', duration = 800) {
+  const start = 0;
+  const startTime = performance.now();
+  function tick(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const current = start + (target - start) * eased;
+    el.textContent = prefix + (Number.isInteger(target) ? Math.round(current) : current.toFixed(2)) + suffix;
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 function renderSummary() {
   const container = document.getElementById('summaryContent');
-  // Draft orders are shown separately, exclude from stats
-  const filtered = orders.filter(o => o.status !== 'draft' && activeCreators.has(o.creator));
+  const filtered = getFilteredOrders();
 
   if (!filtered.length) {
-    container.innerHTML = '<div class="empty">暂无订单</div>';
+    container.innerHTML = '<div class="empty">暂无匹配订单</div>';
     return;
   }
 
@@ -361,15 +489,23 @@ function renderSummary() {
   // === Global overview ===
   let gTotal = 0, gCost = 0, gFee = 0, gProfit = 0, gMr = 0, gIncome = 0;
   let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0, gMrPaid = 0;
+  let gConfirmedIncome = 0, gConfirmedMr = 0; // 已收货+已交付 (不含未收货)
   let gTotalCount = 0, gDoneCount = 0, gActiveCount = 0;
+  let gRecCount = 0, gPenCount = 0;
   filtered.forEach(o => {
     const b = calcBreakdown(o.amount, o.creator, o.plan);
     gTotal += o.amount; gCost += b.cost; gFee += b.fee;
     gProfit += b.profit; gMr += b.mrCut; gIncome += b.myIncome;
     gTotalCount++;
-    if (o.status === '已交付') { gDelivered += o.amount; gDeliveredCount++; gMrPaid += b.mrCut; gDoneCount++; }
-    else if (o.status === '已收货') { gReceived += o.amount; gActiveCount++; }
-    else { gPending += o.amount; gActiveCount++; }
+    if (o.status === '已交付') {
+      gDelivered += o.amount; gDeliveredCount++; gMrPaid += b.mrCut; gDoneCount++;
+      gConfirmedIncome += b.myIncome; gConfirmedMr += b.mrCut;
+    } else if (o.status === '已收货') {
+      gReceived += o.amount; gRecCount++; gActiveCount++;
+      gConfirmedIncome += b.myIncome; gConfirmedMr += b.mrCut;
+    } else {
+      gPending += o.amount; gPenCount++; gActiveCount++;
+    }
   });
 
   html += `<div class="section-card">
@@ -381,17 +517,25 @@ function renderSummary() {
     </div>
     <div class="money-grid">
       <div class="money-item"><div class="money-label">订单总额</div><div class="money-value" style="color:#ffd700">¥${gTotal.toFixed(0)}</div></div>
-      <div class="money-item"><div class="money-label">⏳ 待收货</div><div class="money-value" style="color:#fdcb6e">¥${gPending.toFixed(0)}</div></div>
-      <div class="money-item"><div class="money-label">✅ 已收货</div><div class="money-value" style="color:#00b894">¥${gReceived.toFixed(0)}</div></div>
-      <div class="money-item"><div class="money-label">💰 已交付</div><div class="money-value" style="color:#a29bfe">¥${gDelivered.toFixed(0)}</div></div>
+      <div class="money-item"><div class="money-label">⏳ 待收货 (${gPenCount}单)</div><div class="money-value" style="color:#fdcb6e">¥${gPending.toFixed(0)}</div></div>
+      <div class="money-item"><div class="money-label">✅ 已收货 (${gRecCount}单)</div><div class="money-value" style="color:#00b894">¥${gReceived.toFixed(0)}</div></div>
+      <div class="money-item"><div class="money-label">💰 已交付 (${gDeliveredCount}单)</div><div class="money-value" style="color:#a29bfe">¥${gDelivered.toFixed(0)}</div></div>
       <div class="money-item"><div class="money-label">成本</div><div class="money-value" style="color:#555">¥${gCost.toFixed(0)}</div></div>
       <div class="money-item"><div class="money-label">手续费拨出</div><div class="money-value" style="color:#ff6b6b">¥${gFee.toFixed(2)}</div></div>
       <div class="money-item"><div class="money-label">可分配利润</div><div class="money-value" style="color:#ddd">¥${gProfit.toFixed(2)}</div></div>
       <div class="money-item"><div class="money-label">💵 已分润(迷人30%)</div><div class="money-value" style="color:#fdcb6e">¥${gMrPaid.toFixed(2)}</div></div>
     </div>
+    <div class="profit-callout">
+      <div class="pc-label">💚 已确认个人利润<br><span style="font-size:10px;color:#555">已收货+已交付，不含未收货</span></div>
+      <div class="pc-val" data-anim="${gConfirmedIncome.toFixed(2)}">¥${gConfirmedIncome.toFixed(2)}</div>
+    </div>
+    <div class="fee-callout">
+      <div><div class="fc-label">🔥 需交付技术服务费</div><div class="fc-hint">已收货+已交付，不含未收货</div></div>
+      <div class="fc-val" data-anim="${gConfirmedMr.toFixed(2)}">¥${gConfirmedMr.toFixed(2)}</div>
+    </div>
   </div>`;
 
-  // === Per-creator ===
+  // === Per-creator hero panel ===
   const groups = {};
   filtered.forEach(o => {
     if (!groups[o.creator]) groups[o.creator] = [];
@@ -401,36 +545,47 @@ function renderSummary() {
   for (const [creator, list] of Object.entries(groups)) {
     let cTotal = 0, cCost = 0, cFee = 0, cProfit = 0, cMr = 0, cIncome = 0;
     let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0, cMrPaid = 0;
-    let cTotalCount = 0, cDoneCount = 0, cActiveCount = 0;
+    let cTotalCount = 0, cDoneCount = 0, cActiveCount = 0, cPenCount = 0;
+    let cConfirmedIncome = 0, cConfirmedMr = 0; // 已收货+已交付
     list.forEach(o => {
       const b = calcBreakdown(o.amount, o.creator, o.plan);
       cTotal += o.amount; cCost += b.cost; cFee += b.fee;
       cProfit += b.profit; cMr += b.mrCut; cIncome += b.myIncome;
       cTotalCount++;
-      if (o.status === '已交付') { cDelivered += o.amount; cDeliveredCount++; cMrPaid += b.mrCut; cDoneCount++; }
-      else if (o.status === '已收货') { cReceived += o.amount; cRecCount++; cActiveCount++; }
-      else { cPending += o.amount; cActiveCount++; }
+      if (o.status === '已交付') {
+        cDelivered += o.amount; cDeliveredCount++; cMrPaid += b.mrCut; cDoneCount++;
+        cConfirmedIncome += b.myIncome; cConfirmedMr += b.mrCut;
+      } else if (o.status === '已收货') {
+        cReceived += o.amount; cRecCount++; cActiveCount++;
+        cConfirmedIncome += b.myIncome; cConfirmedMr += b.mrCut;
+      } else {
+        cPending += o.amount; cPenCount++; cActiveCount++;
+      }
     });
 
-    const feeRate = FEE_RATE[creator] || 0;
+    const feeRate = FEE_RATE[creator] || FEE_RATE[getFeeCreator(creator)] || 0;
     const displayName = getDisplayName(creator);
 
-    html += `<div class="section-card">
-      <div class="section-title">👤 ${displayName} <span style="font-size:11px;color:#555;font-weight:400">手续费${(feeRate*100).toFixed(1)}%</span></div>
-      <div class="stat-row">
-        <div class="stat-block"><div class="stat-label">总订单</div><div class="stat-num white">${cTotalCount}</div></div>
-        <div class="stat-block"><div class="stat-label">🔴 进行中</div><div class="stat-num red">${cActiveCount}</div></div>
-        <div class="stat-block"><div class="stat-label">🟢 已完结</div><div class="stat-num green">${cDoneCount}</div></div>
+    // Hero panel - the big money feel
+    html += `<div class="hero-panel anim-in">
+      <div class="hero-name">👤 ${displayName} <span style="font-size:11px;color:#555">手续费${(feeRate*100).toFixed(1)}% · ${cTotalCount}单</span></div>
+      <div class="hero-big"><span class="currency">¥</span>${cConfirmedIncome.toFixed(2)}</div>
+      <div class="hero-sub">已确认个人利润（已收货+已交付）</div>
+
+      <div class="hero-grid">
+        <div class="hero-item"><div class="hero-item-label">订单总额</div><div class="hero-item-val y">¥${cTotal.toFixed(0)}</div></div>
+        <div class="hero-item"><div class="hero-item-label">成本</div><div class="hero-item-val w">¥${cCost.toFixed(0)}</div></div>
+        <div class="hero-item"><div class="hero-item-label">手续费拨出</div><div class="hero-item-val r">-¥${cFee.toFixed(2)}</div></div>
+        <div class="hero-item"><div class="hero-item-label">可分配利润</div><div class="hero-item-val w">¥${cProfit.toFixed(2)}</div></div>
+        <div class="hero-item"><div class="hero-item-label">⏳ 待收货 (${cPenCount}单)</div><div class="hero-item-val y">¥${cPending.toFixed(0)}</div></div>
+        <div class="hero-item"><div class="hero-item-label">✅ 已收货 (${cRecCount}单)</div><div class="hero-item-val g">¥${cReceived.toFixed(0)}</div></div>
+        <div class="hero-item"><div class="hero-item-label">💰 已交付 (${cDeliveredCount}单)</div><div class="hero-item-val p">¥${cDelivered.toFixed(0)}</div></div>
+        <div class="hero-item"><div class="hero-item-label">💵 已分润(迷人30%)</div><div class="hero-item-val o">¥${cMrPaid.toFixed(2)}</div></div>
       </div>
-      <div class="money-grid">
-        <div class="money-item"><div class="money-label">订单总额</div><div class="money-value" style="color:#ffd700">¥${cTotal.toFixed(0)}</div></div>
-        <div class="money-item"><div class="money-label">⏳ 待收货</div><div class="money-value" style="color:#fdcb6e">¥${cPending.toFixed(0)}</div></div>
-        <div class="money-item"><div class="money-label">✅ 已收货</div><div class="money-value" style="color:#00b894">¥${cReceived.toFixed(0)}</div></div>
-        <div class="money-item"><div class="money-label">💰 已交付</div><div class="money-value" style="color:#a29bfe">¥${cDelivered.toFixed(0)}</div></div>
-        <div class="money-item"><div class="money-label">成本</div><div class="money-value" style="color:#555">¥${cCost.toFixed(0)}</div></div>
-        <div class="money-item"><div class="money-label">手续费拨出</div><div class="money-value" style="color:#ff6b6b">¥${cFee.toFixed(2)}</div></div>
-        <div class="money-item"><div class="money-label">可分配利润</div><div class="money-value" style="color:#ddd">¥${cProfit.toFixed(2)}</div></div>
-        <div class="money-item"><div class="money-label">💵 已分润(迷人30%)</div><div class="money-value" style="color:#fdcb6e">¥${cMrPaid.toFixed(2)}</div></div>
+
+      <div class="fee-callout">
+        <div><div class="fc-label">🔥 需交付技术服务费</div><div class="fc-hint">已收货+已交付，不含未收货</div></div>
+        <div class="fc-val">¥${cConfirmedMr.toFixed(2)}</div>
       </div>
     </div>`;
 
@@ -468,6 +623,17 @@ function renderSummary() {
     html += '</div>';
   }
   container.innerHTML = html;
+
+  // Animate hero numbers
+  document.querySelectorAll('.hero-big').forEach(el => {
+    const text = el.textContent.replace(/[¥,]/g, '');
+    const target = parseFloat(text);
+    if (!isNaN(target)) {
+      el.innerHTML = '<span class="currency">¥</span><span class="countup">0</span>';
+      const span = el.querySelector('.countup');
+      animNum(span, target, '', '', 1000);
+    }
+  });
 }
 
 async function loadSummary() {
@@ -588,7 +754,7 @@ function renderDailyFilters() {
   creators.forEach(c => {
     const chip = document.createElement('label');
     chip.className = 'filter-chip' + (dailyActiveCreators.has(c) ? ' active' : '');
-    chip.innerHTML = `<input type="checkbox" ${dailyActiveCreators.has(c)?'checked':''} onchange="toggleDailyFilter('${c}', this.checked)"> ${getDisplayName(c)}`;
+    chip.innerHTML = `<input type="checkbox" ${dailyActiveCreators.has(c)?'checked':''} onchange="toggleDailyFilter('${c}', this.checked)" style="display:none"> ${getDisplayName(c)}`;
     bar.appendChild(chip);
   });
 }
@@ -608,7 +774,6 @@ function renderDaily() {
     return;
   }
 
-  // Group by date
   const byDate = {};
   filtered.forEach(o => {
     const d = new Date(o.createdAt);
