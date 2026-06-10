@@ -430,15 +430,31 @@ async function submitOrder() {
   }
 }
 
+const CREATOR_COLORS = {
+  '波比': { bg: '#1a3520', border: '#00e676', text: '#00e676' },
+  '周众': { bg: '#1a2040', border: '#448aff', text: '#448aff' },
+  '周众（孙尚香人柱力）': { bg: '#1a2040', border: '#448aff', text: '#448aff' },
+  '周总': { bg: '#1a2040', border: '#448aff', text: '#448aff' },
+  '迷人': { bg: '#2a1a35', border: '#a29bfe', text: '#a29bfe' }
+};
+
+function getCreatorColor(c) { return CREATOR_COLORS[c] || { bg: '#1a0f35', border: '#6c5ce7', text: '#fff' }; }
+
 function renderFilters() {
   const creators = [...new Set(orders.filter(o => o.status !== 'draft').map(o => o.creator))];
   const bar = document.getElementById('filterBar');
   bar.innerHTML = '';
   creators.forEach(c => {
     if (!activeCreators.has(c)) activeCreators.add(c);
-    const chip = document.createElement('label');
-    chip.className = 'filter-chip' + (activeCreators.has(c) ? ' active' : '');
-    chip.innerHTML = `<input type="checkbox" ${activeCreators.has(c)?'checked':''} onchange="toggleFilter('${c}', this.checked)" style="display:none"> ${getDisplayName(c)}`;
+    const cc = getCreatorColor(c);
+    const isActive = activeCreators.has(c);
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip' + (isActive ? ' active' : '');
+    chip.style.cssText = isActive
+      ? `background:${cc.bg};border-color:${cc.border};color:${cc.text}`
+      : '';
+    chip.textContent = getDisplayName(c);
+    chip.onclick = () => { toggleFilter(c, !activeCreators.has(c)); };
     bar.appendChild(chip);
   });
 }
@@ -489,7 +505,8 @@ function renderSummary() {
   // === Global overview ===
   let gTotal = 0, gCost = 0, gFee = 0, gProfit = 0, gMr = 0, gIncome = 0;
   let gReceived = 0, gPending = 0, gDelivered = 0, gDeliveredCount = 0, gMrPaid = 0;
-  let gConfirmedIncome = 0, gConfirmedMr = 0; // 已收货+已交付 (不含未收货)
+  let gConfirmedIncome = 0, gConfirmedMr = 0; // 已收货+已交付
+  let gPendingIncome = 0, gPendingMr = 0; // 未收货（待确认）
   let gTotalCount = 0, gDoneCount = 0, gActiveCount = 0;
   let gRecCount = 0, gPenCount = 0;
   filtered.forEach(o => {
@@ -505,6 +522,7 @@ function renderSummary() {
       gConfirmedIncome += b.myIncome; gConfirmedMr += b.mrCut;
     } else {
       gPending += o.amount; gPenCount++; gActiveCount++;
+      gPendingIncome += b.myIncome; gPendingMr += b.mrCut;
     }
   });
 
@@ -526,12 +544,20 @@ function renderSummary() {
       <div class="money-item"><div class="money-label">💵 已分润(迷人30%)</div><div class="money-value" style="color:#fdcb6e">¥${gMrPaid.toFixed(2)}</div></div>
     </div>
     <div class="profit-callout">
-      <div class="pc-label">💚 已确认个人利润<br><span style="font-size:10px;color:#555">已收货+已交付，不含未收货</span></div>
+      <div class="pc-label">💚 已确认个人利润<br><span style="font-size:10px;color:#555">已收货+已交付</span></div>
       <div class="pc-val" data-anim="${gConfirmedIncome.toFixed(2)}">¥${gConfirmedIncome.toFixed(2)}</div>
+    </div>
+    <div class="profit-callout" style="border-color:#fdcb6e;background:linear-gradient(135deg,#2a2a0a,#1a1a0f)">
+      <div><div class="pc-label" style="color:#fdcb6e">⏳ 待确认个人利润<br><span style="font-size:10px;color:#8a7530">未收货，收货后确认</span></div></div>
+      <div class="pc-val" style="color:#fdcb6e">¥${gPendingIncome.toFixed(2)}</div>
     </div>
     <div class="fee-callout">
       <div><div class="fc-label">🔥 待交付技术服务费</div><div class="fc-hint">仅已收货，已交付=已交过</div></div>
       <div class="fc-val" data-anim="${gConfirmedMr.toFixed(2)}">¥${gConfirmedMr.toFixed(2)}</div>
+    </div>
+    <div class="fee-callout" style="border-color:#b36b00;background:linear-gradient(135deg,#1a150a,#1a0f0f)">
+      <div><div class="fc-label" style="color:#b36b00">⏳ 待确认技术服务费</div><div class="fc-hint">未收货，收货后需交付</div></div>
+      <div class="fc-val" style="color:#b36b00">¥${gPendingMr.toFixed(2)}</div>
     </div>
   </div>`;
 
@@ -547,6 +573,7 @@ function renderSummary() {
     let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0, cMrPaid = 0;
     let cTotalCount = 0, cDoneCount = 0, cActiveCount = 0, cPenCount = 0;
     let cConfirmedIncome = 0, cConfirmedMr = 0; // 已收货+已交付
+    let cPendingIncome = 0, cPendingMr = 0; // 未收货
     list.forEach(o => {
       const b = calcBreakdown(o.amount, o.creator, o.plan);
       cTotal += o.amount; cCost += b.cost; cFee += b.fee;
@@ -560,6 +587,7 @@ function renderSummary() {
         cConfirmedIncome += b.myIncome; cConfirmedMr += b.mrCut;
       } else {
         cPending += o.amount; cPenCount++; cActiveCount++;
+        cPendingIncome += b.myIncome; cPendingMr += b.mrCut;
       }
     });
 
@@ -586,6 +614,14 @@ function renderSummary() {
       <div class="fee-callout">
         <div><div class="fc-label">🔥 待交付技术服务费</div><div class="fc-hint">仅已收货，已交付=已交过</div></div>
         <div class="fc-val">¥${cConfirmedMr.toFixed(2)}</div>
+      </div>
+      <div class="profit-callout" style="border-color:#fdcb6e;background:linear-gradient(135deg,#2a2a0a,#1a1a0f)">
+        <div><div class="pc-label" style="color:#fdcb6e">⏳ 待确认个人利润<br><span style="font-size:10px;color:#8a7530">未收货，收货后确认</span></div></div>
+        <div class="pc-val" style="color:#fdcb6e">¥${cPendingIncome.toFixed(2)}</div>
+      </div>
+      <div class="fee-callout" style="border-color:#b36b00;background:linear-gradient(135deg,#1a150a,#1a0f0f)">
+        <div><div class="fc-label" style="color:#b36b00">⏳ 待确认技术服务费</div><div class="fc-hint">未收货，收货后需交付</div></div>
+        <div class="fc-val" style="color:#b36b00">¥${cPendingMr.toFixed(2)}</div>
       </div>
     </div>`;
 
@@ -752,9 +788,15 @@ function renderDailyFilters() {
   bar.innerHTML = '';
   if (!dailyActiveCreators.size) creators.forEach(c => dailyActiveCreators.add(c));
   creators.forEach(c => {
-    const chip = document.createElement('label');
-    chip.className = 'filter-chip' + (dailyActiveCreators.has(c) ? ' active' : '');
-    chip.innerHTML = `<input type="checkbox" ${dailyActiveCreators.has(c)?'checked':''} onchange="toggleDailyFilter('${c}', this.checked)" style="display:none"> ${getDisplayName(c)}`;
+    const cc = getCreatorColor(c);
+    const isActive = dailyActiveCreators.has(c);
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip' + (isActive ? ' active' : '');
+    chip.style.cssText = isActive
+      ? `background:${cc.bg};border-color:${cc.border};color:${cc.text}`
+      : '';
+    chip.textContent = getDisplayName(c);
+    chip.onclick = () => { toggleDailyFilter(c, !dailyActiveCreators.has(c)); };
     bar.appendChild(chip);
   });
 }
