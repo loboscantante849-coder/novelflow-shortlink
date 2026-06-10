@@ -289,16 +289,17 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === "PUT") {
-      const { id, status } = req.body;
-      if (!id || !status) {
-        return res.status(400).json({ error: "Missing id or status" });
+      const { id, status, remark } = req.body;
+      if (!id || (!status && remark === undefined)) {
+        return res.status(400).json({ error: "Missing id or update field" });
       }
       const orders = await getOrders();
       const order = orders.find(o => o.id === id);
       if (!order) return res.status(404).json({ error: "Order not found" });
 
       const wasDraft = order.status === 'draft';
-      order.status = status;
+      if (status) order.status = status;
+      if (remark !== undefined) order.remark = remark;
       await saveOrders(orders);
 
       // If confirming a draft → 未收货, do first-time Feishu sync
