@@ -62,7 +62,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <select id="creator" required>
           <option value="">选择开单人</option>
           <option value="波比">波比</option>
-          <option value="周众（孙尚香人柱力）">周众</option>
+          <option value="周众">周众</option>
           <option value="迷人">迷人</option>
         </select>
       </div>
@@ -83,6 +83,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="form-group">
         <label>用户手机号 *</label>
         <input type="tel" id="phone" placeholder="输入11位手机号" maxlength="11" required pattern="\d{11}">
+      </div>
+      <div class="form-group">
+        <label>备注</label>
+        <select id="remark">
+          <option value="">无</option>
+          <option value="波比垫资给周">波比垫资给周</option>
+          <option value="迷人垫资给周">迷人垫资给周</option>
+        </select>
       </div>
       <button class="submit-btn" type="submit" id="submitBtn">确认并开通</button>
     </form>
@@ -113,6 +121,7 @@ async function handleSubmit(e) {
   const plan = document.getElementById('plan').value;
   const amount = document.getElementById('amount').value;
   const phone = document.getElementById('phone').value.trim();
+  const remark = document.getElementById('remark').value;
   if (!creator || !plan || !amount || !phone) return false;
 
   const btn = document.getElementById('submitBtn');
@@ -128,7 +137,8 @@ async function handleSubmit(e) {
       body: JSON.stringify({
         creator, plan, phone,
         amount: parseFloat(amount),
-        status: 'draft'
+        status: 'draft',
+        remark: remark || undefined
       })
     });
     if (!res.ok) throw new Error('Order failed');
