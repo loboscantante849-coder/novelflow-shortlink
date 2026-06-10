@@ -111,7 +111,7 @@ async function writeBitableRecord(order) {
   const record = {
     fields: {
       "开单人": order.creator,
-      "手机号": order.phone,
+      "手机号": order.phone.startsWith("+") ? order.phone : `+86${order.phone}`,
       "版本": order.plan,
       "金额": order.amount,
       "成本": b.cost,
