@@ -128,7 +128,7 @@ async function writeBitableRecord(order) {
   const result = await feishuRequest(
     "POST",
     `/open-apis/bitable/v1/apps/${FEISHU_BITABLE_TOKEN}/tables/${FEISHU_TABLE_ID}/records`,
-    { records: [record] }
+    record
   );
 
   if (result) {
