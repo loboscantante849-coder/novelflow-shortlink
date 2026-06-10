@@ -155,6 +155,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   <div class="tabs">
     <div class="tab active" onclick="switchTab('add')">新增订单</div>
     <div class="tab" onclick="switchTab('summary')">订单汇总</div>
+    <div class="tab" onclick="switchTab('daily')">日维度</div>
   </div>
 
   <div id="addPanel">
@@ -198,6 +199,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       </div>
       <button class="submit-btn" id="submitBtn" onclick="submitOrder()">提交订单</button>
     </div>
+  </div>
+
+  <div id="dailyPanel" style="display:none">
+    <div class="filter-bar" id="dailyFilterBar"></div>
+    <div id="dailyContent"></div>
   </div>
 
   <div id="summaryPanel" style="display:none">
@@ -256,15 +262,20 @@ function calcBreakdown(amount, creator, plan) {
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('addPanel').style.display = 'none';
+  document.getElementById('summaryPanel').style.display = 'none';
+  document.getElementById('dailyPanel').style.display = 'none';
   if (tab === 'add') {
     document.querySelectorAll('.tab')[0].classList.add('active');
     document.getElementById('addPanel').style.display = '';
-    document.getElementById('summaryPanel').style.display = 'none';
-  } else {
+  } else if (tab === 'summary') {
     document.querySelectorAll('.tab')[1].classList.add('active');
-    document.getElementById('addPanel').style.display = 'none';
     document.getElementById('summaryPanel').style.display = '';
     loadSummary();
+  } else if (tab === 'daily') {
+    document.querySelectorAll('.tab')[2].classList.add('active');
+    document.getElementById('dailyPanel').style.display = '';
+    loadDaily();
   }
 }
 
@@ -421,8 +432,7 @@ function renderSummary() {
       html += `<div class="order-item">
         <div class="order-head">
           <span class="order-plan">${statusIcon} ${o.plan}</span>
-          <span class="order-amount">¥${o.amount.toFixed(0)}</span>
-        </div>
+          <span class="order-amount">¥${o.amount.toFixed(0)}</span>${o.status!=='已交付'?'<span style="font-size:10px;color:#ff6b6b;background:#2a1515;padding:3px 8px;border-radius:4px;margin-left:6px;white-space:nowrap">⚠️ 请确认交付</span>':''}</div>
         <div class="order-phone">📱 ${o.phone}</div>
         <div class="breakdown">
           <div class="bk-row cost"><span>成本</span><span>-¥${b.cost.toFixed(0)}</span></div>
@@ -542,6 +552,127 @@ async function updateStatus(id, status) {
   } catch (e) {
     showToast('更新失败: ' + e.message, true);
   }
+}
+
+// ========== Daily View ==========
+let dailyActiveCreators = new Set();
+
+function loadDaily() {
+  if (!orders.length) {
+    fetch(API).then(r => r.json()).then(data => {
+      orders = data;
+      renderDailyFilters();
+      renderDaily();
+    }).catch(() => {});
+  } else {
+    renderDailyFilters();
+    renderDaily();
+  }
+}
+
+function renderDailyFilters() {
+  const creators = [...new Set(orders.filter(o => o.status !== 'draft').map(o => o.creator))];
+  const bar = document.getElementById('dailyFilterBar');
+  bar.innerHTML = '';
+  if (!dailyActiveCreators.size) creators.forEach(c => dailyActiveCreators.add(c));
+  creators.forEach(c => {
+    const chip = document.createElement('label');
+    chip.className = 'filter-chip' + (dailyActiveCreators.has(c) ? ' active' : '');
+    chip.innerHTML = `<input type="checkbox" ${dailyActiveCreators.has(c)?'checked':''} onchange="toggleDailyFilter('${c}', this.checked)"> ${getDisplayName(c)}`;
+    bar.appendChild(chip);
+  });
+}
+
+function toggleDailyFilter(creator, checked) {
+  if (checked) dailyActiveCreators.add(creator);
+  else dailyActiveCreators.delete(creator);
+  renderDaily();
+}
+
+function renderDaily() {
+  const container = document.getElementById('dailyContent');
+  const filtered = orders.filter(o => o.status !== 'draft' && dailyActiveCreators.has(o.creator));
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty">暂无订单</div>';
+    return;
+  }
+
+  // Group by date
+  const byDate = {};
+  filtered.forEach(o => {
+    const d = new Date(o.createdAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (!byDate[key]) byDate[key] = [];
+    byDate[key].push(o);
+  });
+
+  const sortedDates = Object.keys(byDate).sort().reverse();
+  let html = '';
+
+  sortedDates.forEach(dateKey => {
+    const dayOrders = byDate[dateKey];
+    const weekday = ['日','一','二','三','四','五','六'][new Date(dateKey).getDay()];
+
+    const byCreator = {};
+    dayOrders.forEach(o => {
+      if (!byCreator[o.creator]) byCreator[o.creator] = { count: 0, total: 0, pending: 0, received: 0, delivered: 0, income: 0 };
+      byCreator[o.creator].count++;
+      byCreator[o.creator].total += o.amount;
+      const b = calcBreakdown(o.amount, o.creator, o.plan);
+      byCreator[o.creator].income += b.myIncome;
+      if (o.status === '未收货') byCreator[o.creator].pending++;
+      else if (o.status === '已收货') byCreator[o.creator].received++;
+      else if (o.status === '已交付') byCreator[o.creator].delivered++;
+    });
+
+    html += `<div class="section-card">
+      <div class="section-title">📅 ${dateKey} <span style="font-size:12px;color:#555;font-weight:400">周${weekday} · ${dayOrders.length}单</span></div>`;
+
+    Object.entries(byCreator).forEach(([creator, stat]) => {
+      const dn = getDisplayName(creator);
+      const parts = [];
+      if (stat.pending) parts.push(`⏳${stat.pending}`);
+      if (stat.received) parts.push(`✅${stat.received}`);
+      if (stat.delivered) parts.push(`💰${stat.delivered}`);
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1a1a2e">
+        <span style="font-size:13px;color:#ddd">${dn} <span style="font-size:11px;color:#666">${stat.count}单 ${parts.join(' ')}</span></span>
+        <div>
+          <span style="font-size:14px;color:#ffd700;font-weight:700">¥${stat.total.toFixed(0)}</span>
+          <span style="font-size:11px;color:#00b894;margin-left:8px">收入¥${stat.income.toFixed(2)}</span>
+        </div>
+      </div>`;
+    });
+
+    dayOrders.forEach(o => {
+      const b = calcBreakdown(o.amount, o.creator, o.plan);
+      const statusIcon = o.status === '已交付' ? '💰' : o.status === '已收货' ? '✅' : '⏳';
+      const dn = getDisplayName(o.creator);
+      html += `<div class="order-item">
+        <div class="order-head">
+          <span class="order-plan">${statusIcon} ${dn} · ${o.plan}</span>
+          <div style="display:flex;align-items:center">
+            <span class="order-amount">¥${o.amount.toFixed(0)}</span>
+            ${o.status!=='已交付'?'<span style="font-size:10px;color:#ff6b6b;background:#2a1515;padding:3px 8px;border-radius:4px;margin-left:6px;white-space:nowrap">⚠️ 请确认交付</span>':''}
+          </div>
+        </div>
+        <div class="order-phone">📱 ${o.phone}</div>
+        <div class="status-row">
+          <span class="status-label">状态</span>
+          <select class="status-select" onchange="updateStatus('${o.id}', this.value)" ${o.status==='已交付'?'disabled':''}>
+            <option value="未收货" ${o.status==='未收货'?'selected':''}>📦 未收货</option>
+            <option value="已收货" ${o.status==='已收货'?'selected':''}>✅ 已收货</option>
+            <option value="已交付" ${o.status==='已交付'?'selected':''}>💰 已交付（已分钱）</option>
+          </select>
+          ${o.status==='已交付'?'<span class="lock-badge">🔒 已锁定</span>':''}
+        </div>
+      </div>`;
+    });
+
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
 }
 </script>
 </body>
