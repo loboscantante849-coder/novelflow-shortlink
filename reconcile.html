@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>订单对账表 - NovelFlow</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e0e0e0;padding:24px}
+h1{font-size:22px;margin-bottom:8px;color:#6c63ff}
+.sub{color:#888;font-size:13px;margin-bottom:20px}
+.controls{display:flex;gap:10px;margin-bottom:16px;align-items:center}
+.controls select,.controls input{padding:8px 12px;border:1px solid #2a2d3e;border-radius:8px;background:#1a1d2e;color:#e0e0e0;font-size:13px}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;cursor:pointer;color:#fff;font-weight:600}
+.btn-blue{background:#448aff}.btn-green{background:#00e676;color:#000}
+table{width:100%;border-collapse:collapse;background:#1a1d2e;border-radius:12px;overflow:hidden}
+thead{background:rgba(108,99,255,.15)}
+th{padding:12px 16px;text-align:left;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #2a2d3e}
+td{padding:12px 16px;border-bottom:1px solid #2a2d3e;font-size:14px}
+tr:hover{background:rgba(108,99,255,.06)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.b-高阶{background:rgba(68,138,255,.15);color:#448aff}
+.b-旗舰{background:rgba(255,171,64,.15);color:#ffab40}
+.b-尊享{background:rgba(108,99,255,.15);color:#6c63ff}
+.b-已交付{background:rgba(0,230,118,.15);color:#00e676}
+.b-已收货{background:rgba(68,138,255,.15);color:#448aff}
+.b-未收货{background:rgba(255,82,82,.15);color:#ff5252}
+.stats{display:flex;gap:16px;margin-bottom:20px}
+.stat{background:#1a1d2e;border-radius:10px;padding:14px 20px;border:1px solid #2a2d3e}
+.stat .v{font-size:24px;font-weight:800;color:#00e676}
+.stat .l{font-size:11px;color:#888;margin-top:2px}
+</style>
+</head>
+<body>
+<h1>📋 订单对账表</h1>
+<div class="sub">手机号 + 版本 · 供官方核对</div>
+
+<div class="stats" id="statsBar"></div>
+
+<div class="controls">
+  <select id="filterPlan" onchange="render()">
+    <option value="">全部版本</option>
+    <option value="个人高阶版">个人高阶版</option>
+    <option value="个人旗舰版">个人旗舰版</option>
+    <option value="个人尊享版">个人尊享版</option>
+  </select>
+  <select id="filterStatus" onchange="render()">
+    <option value="">全部状态</option>
+    <option value="已交付">已交付</option>
+    <option value="已收货">已收货</option>
+    <option value="未收货">未收货</option>
+  </select>
+  <input id="searchPhone" placeholder="搜手机号..." oninput="render()">
+  <button class="btn btn-green" onclick="copyTable()">📋 复制表格</button>
+  <button class="btn btn-blue" onclick="exportCSV()">📥 导出CSV</button>
+</div>
+
+<table>
+  <thead>
+    <tr><th>#</th><th>手机号</th><th>版本</th><th>金额</th><th>状态</th><th>下单时间</th></tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<script>
+let orders=[];
+const KV_URL='https://next-gibbon-79175.upstash.io';
+const KV_TOKEN='gQAAAAAAATVHAAIgcDFhMjQ1ZDk0ZDJkNzk0ZjEyYTcwN2Y0MWQ5ZDVjMjQwMw';
+
+async function load(){
+  const r=await fetch(KV_URL+'/get/nf_orders',{headers:{Authorization:'Bearer '+KV_TOKEN}});
+  const d=await r.json();
+  orders=typeof d.result==='string'?JSON.parse(d.result):d.result;
+  orders.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  renderStats();
+  render();
+}
+
+function renderStats(){
+  const filtered=getFiltered();
+  const plans={};
+  let total=0;
+  filtered.forEach(o=>{
+    plans[o.plan]=(plans[o.plan]||0)+1;
+    total+=o.amount||0;
+  });
+  document.getElementById('statsBar').innerHTML=`
+    <div class="stat"><div class="v">${filtered.length}</div><div class="l">订单数</div></div>
+    <div class="stat"><div class="v">¥${total}</div><div class="l">总金额</div></div>
+    ${Object.entries(plans).map(([k,v])=>`<div class="stat"><div class="v">${v}</div><div class="l">${k}</div></div>`).join('')}
+  `;
+}
+
+function getFiltered(){
+  const plan=document.getElementById('filterPlan').value;
+  const status=document.getElementById('filterStatus').value;
+  const phone=document.getElementById('searchPhone').value.trim();
+  return orders.filter(o=>{
+    if(plan&&o.plan!==plan)return false;
+    if(status&&o.status!==status)return false;
+    if(phone&&!o.phone.includes(phone))return false;
+    return true;
+  });
+}
+
+function render(){
+  const filtered=getFiltered();
+  renderStats();
+  document.getElementById('tbody').innerHTML=filtered.map((o,i)=>{
+    const planShort=o.plan?.replace('个人','')||'';
+    const cls=planShort.includes('旗舰')?'b-旗舰':planShort.includes('高阶')?'b-高阶':'b-尊享';
+    const scls=o.status==='已交付'?'b-已交付':o.status==='已收货'?'b-已收货':'b-未收货';
+    const date=o.createdAt?new Date(o.createdAt).toLocaleDateString('zh-CN'):'';
+    return `<tr><td>${i+1}</td><td>${o.phone}</td><td><span class="badge ${cls}">${o.plan}</span></td><td>¥${o.amount}</td><td><span class="badge ${scls}">${o.status}</span></td><td>${date}</td></tr>`;
+  }).join('');
+}
+
+function copyTable(){
+  const filtered=getFiltered();
+  const text='手机号\t版本\t金额\t状态\t下单时间\n'+filtered.map(o=>`${o.phone}\t${o.plan}\t¥${o.amount}\t${o.status}\t${o.createdAt?new Date(o.createdAt).toLocaleDateString('zh-CN'):''}`).join('\n');
+  navigator.clipboard.writeText(text).then(()=>alert('已复制！可直接粘贴到Excel'));
+}
+
+function exportCSV(){
+  const filtered=getFiltered();
+  const csv='\uFEFF手机号,版本,金额,状态,下单时间\n'+filtered.map(o=>`${o.phone},${o.plan},${o.amount},${o.status},${o.createdAt||''}`).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='对账表_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+load();
+</script>
+</body>
+</html>
