@@ -438,14 +438,15 @@ const CREATOR_COLORS = {
 function getCreatorColor(c) { return CREATOR_COLORS[c] || { bg: '#1a0f35', border: '#6c5ce7', text: '#fff' }; }
 
 function renderCreatorTabs() {
-  const creators = [...new Set(orders.filter(o => o.status !== 'draft').map(o => o.creator))];
+  const rawCreators = [...new Set(orders.filter(o => o.status !== 'draft').map(o => o.creator))];
+  // Merge by display name (e.g. "周众（孙尚香人柱力）" and "周众" both show as "周众")
+  const displayNameSet = [...new Set(rawCreators.map(c => getDisplayName(c)))];
   const bar = document.getElementById('creatorTabs');
   let html = `<div class="ctab ${selectedCreator==='all'?'active':''}" onclick="selectCreator('all')">👥 全部</div>`;
-  creators.forEach(c => {
-    const cc = getCreatorColor(c);
-    const name = getDisplayName(c);
-    const active = selectedCreator === c;
-    html += `<div class="ctab ${active?'active':''}" style="${active?`background:${cc.bg};border-color:${cc.border};color:${cc.text}`:''}" onclick="selectCreator('${c}')">${name}</div>`;
+  displayNameSet.forEach(name => {
+    const cc = getCreatorColor(name);
+    const active = selectedCreator === name;
+    html += `<div class="ctab ${active?'active':''}" style="${active?`background:${cc.bg};border-color:${cc.border};color:${cc.text}`:''}" onclick="selectCreator('${name}')">${name}</div>`;
   });
   bar.innerHTML = html;
 }
@@ -465,7 +466,7 @@ function toggleFilter(creator, checked) {
 function getFilteredOrders() {
   return orders.filter(o => {
     if (o.status === 'draft') return false;
-    if (selectedCreator !== 'all' && o.creator !== selectedCreator && getDisplayName(o.creator) !== selectedCreator) return false;
+    if (selectedCreator !== 'all' && getDisplayName(o.creator) !== selectedCreator) return false;
     if (statusFilter !== 'all' && o.status !== statusFilter) return false;
     const search = (document.getElementById('phoneSearch').value || '').trim();
     if (search && !o.phone.includes(search)) return false;
@@ -566,11 +567,13 @@ function renderSummary() {
   // === Per-creator hero panel ===
   const groups = {};
   filtered.forEach(o => {
-    if (!groups[o.creator]) groups[o.creator] = [];
-    groups[o.creator].push(o);
+    const key = getDisplayName(o.creator);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(o);
   });
 
-  for (const [creator, list] of Object.entries(groups)) {
+  for (const [displayName, list] of Object.entries(groups)) {
+    const creator = list[0].creator; // raw name for fee calc
     let cTotal = 0, cCost = 0, cFee = 0, cProfit = 0, cMr = 0, cIncome = 0;
     let cReceived = 0, cPending = 0, cDelivered = 0, cRecCount = 0, cDeliveredCount = 0, cMrPaid = 0;
     let cTotalCount = 0, cDoneCount = 0, cActiveCount = 0, cPenCount = 0;
@@ -594,8 +597,7 @@ function renderSummary() {
     });
 
     const feeRate = FEE_RATE[creator] || FEE_RATE[getFeeCreator(creator)] || 0;
-    const displayName = getDisplayName(creator);
-    const cc = getCreatorColor(creator);
+    const cc = getCreatorColor(displayName);
 
     html += `<div class="hero-panel anim-in" style="border-top:3px solid ${cc.border}">
       <div class="hero-name">👤 ${displayName} <span style="font-size:11px;color:#555">${cTotalCount}单</span></div>
@@ -791,14 +793,14 @@ function loadDaily() {
 }
 
 function renderDailyTabs() {
-  const creators = [...new Set(orders.filter(o => o.status !== 'draft').map(o => o.creator))];
+  const rawCreators = [...new Set(orders.filter(o => o.status !== 'draft').map(o => o.creator))];
+  const displayNameSet = [...new Set(rawCreators.map(c => getDisplayName(c)))];
   const bar = document.getElementById('dailyFilterBar');
   let html = `<div class="ctab ${dailySelectedCreator==='all'?'active':''}" onclick="selectDailyCreator('all')">👥 全部</div>`;
-  creators.forEach(c => {
-    const cc = getCreatorColor(c);
-    const name = getDisplayName(c);
-    const active = dailySelectedCreator === c;
-    html += `<div class="ctab ${active?'active':''}" style="${active?`background:${cc.bg};border-color:${cc.border};color:${cc.text}`:''}" onclick="selectDailyCreator('${c}')">${name}</div>`;
+  displayNameSet.forEach(name => {
+    const cc = getCreatorColor(name);
+    const active = dailySelectedCreator === name;
+    html += `<div class="ctab ${active?'active':''}" style="${active?`background:${cc.bg};border-color:${cc.border};color:${cc.text}`:''}" onclick="selectDailyCreator('${name}')">${name}</div>`;
   });
   bar.innerHTML = html;
 }
@@ -819,7 +821,7 @@ function renderDaily() {
   const container = document.getElementById('dailyContent');
   const filtered = orders.filter(o => {
     if (o.status === 'draft') return false;
-    if (dailySelectedCreator !== 'all' && o.creator !== dailySelectedCreator) return false;
+    if (dailySelectedCreator !== 'all' && getDisplayName(o.creator) !== dailySelectedCreator) return false;
     return true;
   });
 
