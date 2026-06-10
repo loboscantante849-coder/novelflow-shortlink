@@ -26,8 +26,8 @@ const FEE_RATE = {
 };
 const MR_RATE = 0.30;
 
-function calcBreakdown(amount, creator, plan) {
-  const cost = (PLAN_INFO[plan] && PLAN_INFO[plan].cost) || 0;
+function calcBreakdown(amount, creator, plan, costOverride) {
+  const cost = costOverride !== undefined ? costOverride : ((PLAN_INFO[plan] && PLAN_INFO[plan].cost) || 0);
   const feeRate = FEE_RATE[creator] || 0;
   const fee = amount * feeRate;
   const profit = amount - cost - fee;
@@ -108,7 +108,7 @@ async function feishuRequest(method, path, body) {
 
 // Write a record to Feishu Bitable
 async function writeBitableRecord(order) {
-  const b = calcBreakdown(order.amount, order.creator, order.plan);
+  const b = calcBreakdown(order.amount, order.creator, order.plan, order.cost);
   const record = {
     fields: {
       "开单人": order.creator,
@@ -170,7 +170,7 @@ async function updateBitableRecord(orderId, updates) {
 
 // Send a notification card to Feishu group
 async function sendGroupNotification(order, action) {
-  const b = calcBreakdown(order.amount, order.creator, order.plan);
+  const b = calcBreakdown(order.amount, order.creator, order.plan, order.cost);
   const displayName = order.creator;
 
   let actionText = "";
