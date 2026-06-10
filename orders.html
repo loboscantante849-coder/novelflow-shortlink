@@ -360,8 +360,8 @@ document.querySelectorAll('input[name="plan"]').forEach(el => {
   });
 });
 
-function calcBreakdown(amount, creator, plan) {
-  const cost = (PLAN_INFO[plan] && PLAN_INFO[plan].cost) || 0;
+function calcBreakdown(amount, creator, plan, costOverride) {
+  const cost = costOverride !== undefined ? costOverride : ((PLAN_INFO[plan] && PLAN_INFO[plan].cost) || 0);
   const feeRate = FEE_RATE[creator] || FEE_RATE[getFeeCreator(creator)] || 0;
   const fee = amount * feeRate;
   const profit = amount - cost - fee;
@@ -519,7 +519,7 @@ function renderSummary() {
   let gTotalCount = 0, gDoneCount = 0, gActiveCount = 0;
   let gRecCount = 0, gPenCount = 0;
   filtered.forEach(o => {
-    const b = calcBreakdown(o.amount, o.creator, o.plan);
+    const b = calcBreakdown(o.amount, o.creator, o.plan, o.cost);
     gTotal += o.amount; gCost += b.cost; gFee += b.fee;
     gProfit += b.profit; gMr += b.mrCut; gIncome += b.myIncome;
     gTotalCount++;
@@ -590,7 +590,7 @@ function renderSummary() {
     let cConfirmedIncome = 0, cConfirmedMr = 0; // 已收货+已交付
     let cPendingIncome = 0, cPendingMr = 0; // 未收货
     list.forEach(o => {
-      const b = calcBreakdown(o.amount, o.creator, o.plan);
+      const b = calcBreakdown(o.amount, o.creator, o.plan, o.cost);
       cTotal += o.amount; cCost += b.cost; cFee += b.fee;
       cProfit += b.profit; cMr += b.mrCut; cIncome += b.myIncome;
       cTotalCount++;
@@ -648,7 +648,7 @@ function renderSummary() {
     // Orders list
     html += `<div class="section-card"><div class="section-title">📋 ${displayName} 的订单</div>`;
     list.forEach(o => {
-      const b = calcBreakdown(o.amount, o.creator, o.plan);
+      const b = calcBreakdown(o.amount, o.creator, o.plan, o.cost);
       const statusIcon = o.status === '已交付' ? '💰' : o.status === '已收货' ? '✅' : '⏳';
       html += `<div class="order-item">
         <div class="order-head">
@@ -861,7 +861,7 @@ function renderDaily() {
       if (!byCreator[o.creator]) byCreator[o.creator] = { count: 0, total: 0, pending: 0, received: 0, delivered: 0, income: 0 };
       byCreator[o.creator].count++;
       byCreator[o.creator].total += o.amount;
-      const b = calcBreakdown(o.amount, o.creator, o.plan);
+      const b = calcBreakdown(o.amount, o.creator, o.plan, o.cost);
       byCreator[o.creator].income += b.myIncome;
       if (o.status === '未收货') byCreator[o.creator].pending++;
       else if (o.status === '已收货') byCreator[o.creator].received++;
@@ -887,7 +887,7 @@ function renderDaily() {
     });
 
     dayOrders.forEach(o => {
-      const b = calcBreakdown(o.amount, o.creator, o.plan);
+      const b = calcBreakdown(o.amount, o.creator, o.plan, o.cost);
       const statusIcon = o.status === '已交付' ? '💰' : o.status === '已收货' ? '✅' : '⏳';
       const dn = getDisplayName(o.creator);
       html += `<div class="order-item">
