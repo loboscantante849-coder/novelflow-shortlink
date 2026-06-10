@@ -533,31 +533,34 @@ function renderSummary() {
       <div class="stat-block"><div class="stat-label">🔴 进行中</div><div class="stat-num red">${gActiveCount}</div></div>
       <div class="stat-block"><div class="stat-label">🟢 已完结</div><div class="stat-num green">${gDoneCount}</div></div>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0">
+      <div style="background:#0d2a1a;border:1px solid #00e676;border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#00e676;margin-bottom:4px">💚 总到手利润</div>
+        <div style="font-size:22px;font-weight:700;color:#00e676">¥${gConfirmedIncome.toFixed(2)}</div>
+        <div style="font-size:9px;color:#555;margin-top:2px">已收货+已交付</div>
+      </div>
+      <div style="background:#2a1a0a;border:1px solid #ff6b35;border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#ff6b35;margin-bottom:4px">🔥 总待付技术服务费</div>
+        <div style="font-size:22px;font-weight:700;color:#ff6b35">¥${gConfirmedMr.toFixed(2)}</div>
+        <div style="font-size:9px;color:#555;margin-top:2px">仅已收货</div>
+      </div>
+      <div style="background:#1a1a0a;border:1px solid #fdcb6e;border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#fdcb6e;margin-bottom:4px">⏳ 总未到手的</div>
+        <div style="font-size:22px;font-weight:700;color:#fdcb6e">¥${gPendingIncome.toFixed(2)}</div>
+        <div style="font-size:9px;color:#555;margin-top:2px">未收货</div>
+      </div>
+      <div style="background:#1a0f0a;border:1px solid #b36b00;border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#b36b00;margin-bottom:4px">⏳ 总未要付的</div>
+        <div style="font-size:22px;font-weight:700;color:#b36b00">¥${gPendingMr.toFixed(2)}</div>
+        <div style="font-size:9px;color:#555;margin-top:2px">未收货</div>
+      </div>
+    </div>
     <div class="money-grid">
       <div class="money-item"><div class="money-label">订单总额</div><div class="money-value" style="color:#ffd700">¥${gTotal.toFixed(0)}</div></div>
       <div class="money-item"><div class="money-label">⏳ 待收货 (${gPenCount}单)</div><div class="money-value" style="color:#fdcb6e">¥${gPending.toFixed(0)}</div></div>
       <div class="money-item"><div class="money-label">✅ 已收货 (${gRecCount}单)</div><div class="money-value" style="color:#00b894">¥${gReceived.toFixed(0)}</div></div>
       <div class="money-item"><div class="money-label">💰 已交付 (${gDeliveredCount}单)</div><div class="money-value" style="color:#a29bfe">¥${gDelivered.toFixed(0)}</div></div>
-      <div class="money-item"><div class="money-label">成本</div><div class="money-value" style="color:#555">¥${gCost.toFixed(0)}</div></div>
-      <div class="money-item"><div class="money-label">手续费拨出</div><div class="money-value" style="color:#ff6b6b">¥${gFee.toFixed(2)}</div></div>
-      <div class="money-item"><div class="money-label">可分配利润</div><div class="money-value" style="color:#ddd">¥${gProfit.toFixed(2)}</div></div>
-      <div class="money-item"><div class="money-label">💵 已分润(迷人30%)</div><div class="money-value" style="color:#fdcb6e">¥${gMrPaid.toFixed(2)}</div></div>
-    </div>
-    <div class="profit-callout">
-      <div class="pc-label">💚 已确认个人利润<br><span style="font-size:10px;color:#555">已收货+已交付</span></div>
-      <div class="pc-val" data-anim="${gConfirmedIncome.toFixed(2)}">¥${gConfirmedIncome.toFixed(2)}</div>
-    </div>
-    <div class="profit-callout" style="border-color:#fdcb6e;background:linear-gradient(135deg,#2a2a0a,#1a1a0f)">
-      <div><div class="pc-label" style="color:#fdcb6e">⏳ 待确认个人利润<br><span style="font-size:10px;color:#8a7530">未收货，收货后确认</span></div></div>
-      <div class="pc-val" style="color:#fdcb6e">¥${gPendingIncome.toFixed(2)}</div>
-    </div>
-    <div class="fee-callout">
-      <div><div class="fc-label">🔥 待交付技术服务费</div><div class="fc-hint">仅已收货，已交付=已交过</div></div>
-      <div class="fc-val" data-anim="${gConfirmedMr.toFixed(2)}">¥${gConfirmedMr.toFixed(2)}</div>
-    </div>
-    <div class="fee-callout" style="border-color:#b36b00;background:linear-gradient(135deg,#1a150a,#1a0f0f)">
-      <div><div class="fc-label" style="color:#b36b00">⏳ 待确认技术服务费</div><div class="fc-hint">未收货，收货后需交付</div></div>
-      <div class="fc-val" style="color:#b36b00">¥${gPendingMr.toFixed(2)}</div>
+      <div class="money-item"><div class="money-label">💵 已分润(已交付)</div><div class="money-value" style="color:#fdcb6e">¥${gMrPaid.toFixed(2)}</div></div>
     </div>
   </div>`;
 
@@ -593,35 +596,41 @@ function renderSummary() {
 
     const feeRate = FEE_RATE[creator] || FEE_RATE[getFeeCreator(creator)] || 0;
     const displayName = getDisplayName(creator);
+    const cc = getCreatorColor(creator);
 
-    // Hero panel - the big money feel
-    html += `<div class="hero-panel anim-in">
-      <div class="hero-name">👤 ${displayName} <span style="font-size:11px;color:#555">手续费${(feeRate*100).toFixed(1)}% · ${cTotalCount}单</span></div>
+    html += `<div class="hero-panel anim-in" style="border-top:3px solid ${cc.border}">
+      <div class="hero-name">👤 ${displayName} <span style="font-size:11px;color:#555">${cTotalCount}单</span></div>
       <div class="hero-big"><span class="currency">¥</span>${cConfirmedIncome.toFixed(2)}</div>
-      <div class="hero-sub">已确认个人利润（已收货+已交付）</div>
+      <div class="hero-sub" style="color:${cc.text}">到手利润（已收货+已交付的钱）</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 12px">
+        <div style="background:#0d2a1a;border:1px solid #00e676;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#00e676;margin-bottom:4px">💚 到手利润</div>
+          <div style="font-size:22px;font-weight:700;color:#00e676">¥${cConfirmedIncome.toFixed(2)}</div>
+          <div style="font-size:9px;color:#555;margin-top:2px">已收货+已交付</div>
+        </div>
+        <div style="background:#2a1a0a;border:1px solid #ff6b35;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#ff6b35;margin-bottom:4px">🔥 要付给迷人的</div>
+          <div style="font-size:22px;font-weight:700;color:#ff6b35">¥${cConfirmedMr.toFixed(2)}</div>
+          <div style="font-size:9px;color:#555;margin-top:2px">仅已收货（已交付=已付过）</div>
+        </div>
+        <div style="background:#1a1a0a;border:1px solid #fdcb6e;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#fdcb6e;margin-bottom:4px">⏳ 还没到手的利润</div>
+          <div style="font-size:22px;font-weight:700;color:#fdcb6e">¥${cPendingIncome.toFixed(2)}</div>
+          <div style="font-size:9px;color:#555;margin-top:2px">未收货，到了再加</div>
+        </div>
+        <div style="background:#1a0f0a;border:1px solid #b36b00;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#b36b00;margin-bottom:4px">⏳ 还没要付的</div>
+          <div style="font-size:22px;font-weight:700;color:#b36b00">¥${cPendingMr.toFixed(2)}</div>
+          <div style="font-size:9px;color:#555;margin-top:2px">未收货，收货后再付</div>
+        </div>
+      </div>
 
       <div class="hero-grid">
         <div class="hero-item"><div class="hero-item-label">订单总额</div><div class="hero-item-val y">¥${cTotal.toFixed(0)}</div></div>
         <div class="hero-item"><div class="hero-item-label">成本</div><div class="hero-item-val w">¥${cCost.toFixed(0)}</div></div>
         <div class="hero-item"><div class="hero-item-label">手续费拨出</div><div class="hero-item-val r">-¥${cFee.toFixed(2)}</div></div>
-        <div class="hero-item"><div class="hero-item-label">可分配利润</div><div class="hero-item-val w">¥${cProfit.toFixed(2)}</div></div>
-        <div class="hero-item"><div class="hero-item-label">⏳ 待收货 (${cPenCount}单)</div><div class="hero-item-val y">¥${cPending.toFixed(0)}</div></div>
-        <div class="hero-item"><div class="hero-item-label">✅ 已收货 (${cRecCount}单)</div><div class="hero-item-val g">¥${cReceived.toFixed(0)}</div></div>
-        <div class="hero-item"><div class="hero-item-label">💰 已交付 (${cDeliveredCount}单)</div><div class="hero-item-val p">¥${cDelivered.toFixed(0)}</div></div>
-        <div class="hero-item"><div class="hero-item-label">💵 已分润(迷人30%)</div><div class="hero-item-val o">¥${cMrPaid.toFixed(2)}</div></div>
-      </div>
-
-      <div class="fee-callout">
-        <div><div class="fc-label">🔥 待交付技术服务费</div><div class="fc-hint">仅已收货，已交付=已交过</div></div>
-        <div class="fc-val">¥${cConfirmedMr.toFixed(2)}</div>
-      </div>
-      <div class="profit-callout" style="border-color:#fdcb6e;background:linear-gradient(135deg,#2a2a0a,#1a1a0f)">
-        <div><div class="pc-label" style="color:#fdcb6e">⏳ 待确认个人利润<br><span style="font-size:10px;color:#8a7530">未收货，收货后确认</span></div></div>
-        <div class="pc-val" style="color:#fdcb6e">¥${cPendingIncome.toFixed(2)}</div>
-      </div>
-      <div class="fee-callout" style="border-color:#b36b00;background:linear-gradient(135deg,#1a150a,#1a0f0f)">
-        <div><div class="fc-label" style="color:#b36b00">⏳ 待确认技术服务费</div><div class="fc-hint">未收货，收货后需交付</div></div>
-        <div class="fc-val" style="color:#b36b00">¥${cPendingMr.toFixed(2)}</div>
+        <div class="hero-item"><div class="hero-item-label">💵 已分润(已交付)</div><div class="hero-item-val o">¥${cMrPaid.toFixed(2)}</div></div>
       </div>
     </div>`;
 
