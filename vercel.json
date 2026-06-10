@@ -5,6 +5,10 @@
       "destination": "/api/coze-redirect"
     },
     {
+      "source": "/coze-form",
+      "destination": "/coze.html"
+    },
+    {
       "source": "/coze-logs",
       "destination": "/coze-logs.html"
     },
@@ -14,4 +18,3 @@
     }
   ]
 }
-

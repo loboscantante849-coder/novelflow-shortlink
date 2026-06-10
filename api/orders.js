@@ -240,38 +240,41 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      const { creator, phone, plan, amount } = req.body;
-      if (!creator || !phone || !plan || !amount) {
+      const { creator, phone, plan, amount, status } = req.body;
+      if (!creator || !phone || !plan) {
         return res.status(400).json({ error: "Missing required fields" });
       }
+      const isDraft = status === 'draft';
       const orders = await getOrders();
       const order = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
         creator,
         phone,
         plan,
-        amount: parseFloat(amount),
-        status: "未收货",
+        amount: parseFloat(amount) || 0,
+        status: isDraft ? "draft" : "未收货",
         createdAt: new Date().toISOString()
       };
       orders.push(order);
       await saveOrders(orders);
 
-      // Sync to Feishu (await to ensure Vercel doesn't kill the function)
-      try {
-        const recordId = await writeBitableRecord(order);
-        if (recordId) {
-          const idx = orders.findIndex(o => o.id === order.id);
-          if (idx !== -1) {
-            orders[idx].feishuRecordId = recordId;
-            await saveOrders(orders);
+      // Sync to Feishu only for non-draft orders
+      if (!isDraft) {
+        try {
+          const recordId = await writeBitableRecord(order);
+          if (recordId) {
+            const idx = orders.findIndex(o => o.id === order.id);
+            if (idx !== -1) {
+              orders[idx].feishuRecordId = recordId;
+              await saveOrders(orders);
+            }
           }
-        }
-      } catch (e) { console.error("[Feishu] Bitable write error:", e.message); }
+        } catch (e) { console.error("[Feishu] Bitable write error:", e.message); }
 
-      try {
-        await sendGroupNotification(order, "created");
-      } catch (e) { console.error("[Feishu] Notification error:", e.message); }
+        try {
+          await sendGroupNotification(order, "created");
+        } catch (e) { console.error("[Feishu] Notification error:", e.message); }
+      }
 
       return res.status(201).json(order);
     }
@@ -284,14 +287,32 @@ module.exports = async function handler(req, res) {
       const orders = await getOrders();
       const order = orders.find(o => o.id === id);
       if (!order) return res.status(404).json({ error: "Order not found" });
+
+      const wasDraft = order.status === 'draft';
       order.status = status;
       await saveOrders(orders);
 
-      // Update Feishu Bitable
-      try { await updateBitableRecord(id, { "状态": status }); } catch (e) { console.error("[Feishu] Bitable update error:", e.message); }
+      // If confirming a draft → 未收货, do first-time Feishu sync
+      if (wasDraft && status !== 'draft') {
+        try {
+          const recordId = await writeBitableRecord(order);
+          if (recordId) {
+            const idx = orders.findIndex(o => o.id === order.id);
+            if (idx !== -1) {
+              orders[idx].feishuRecordId = recordId;
+              await saveOrders(orders);
+            }
+          }
+        } catch (e) { console.error("[Feishu] Bitable write error:", e.message); }
 
-      // Notify group
-      try { await sendGroupNotification(order, "status_changed"); } catch (e) { console.error("[Feishu] Notification error:", e.message); }
+        try {
+          await sendGroupNotification(order, "created");
+        } catch (e) { console.error("[Feishu] Notification error:", e.message); }
+      } else if (!wasDraft) {
+        // Normal status change → update Bitable
+        try { await updateBitableRecord(id, { "状态": status }); } catch (e) { console.error("[Feishu] Bitable update error:", e.message); }
+        try { await sendGroupNotification(order, "status_changed"); } catch (e) { console.error("[Feishu] Notification error:", e.message); }
+      }
 
       return res.status(200).json(order);
     }

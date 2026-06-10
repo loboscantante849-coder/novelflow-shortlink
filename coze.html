@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovelFlow - 开通会员</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a12; color: #e0e0e0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+
+.wrapper { width: 100%; max-width: 400px; padding: 24px; }
+
+.card {
+  background: #12121e; border-radius: 20px; padding: 32px 24px;
+  border: 1px solid #1e1e35; text-align: center;
+}
+
+.logo { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 4px; letter-spacing: 1px; }
+.subtitle { font-size: 13px; color: #555; margin-bottom: 28px; }
+
+.form-group { margin-bottom: 18px; text-align: left; }
+.form-group label { display: block; font-size: 12px; color: #777; margin-bottom: 6px; font-weight: 500; }
+.form-group select, .form-group input {
+  width: 100%; padding: 14px 16px; background: #0a0a12; border: 1px solid #222; border-radius: 10px;
+  color: #fff; font-size: 15px; outline: none; transition: border-color 0.2s; -webkit-appearance: none;
+}
+.form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.form-group select option { background: #12121e; }
+.form-group input:focus, .form-group select:focus { border-color: #6c5ce7; }
+.form-group input::placeholder { color: #333; }
+
+.submit-btn {
+  width: 100%; padding: 16px; background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700;
+  cursor: pointer; margin-top: 8px; transition: opacity 0.2s;
+}
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.hint { font-size: 11px; color: #333; margin-top: 16px; line-height: 1.5; }
+
+/* Overlay */
+.overlay {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.overlay.show { display: flex; }
+.spinner { width: 40px; height: 40px; border: 3px solid #222; border-top-color: #6c5ce7; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="card">
+    <div class="logo">NovelFlow</div>
+    <div class="subtitle">开通VIP会员 · 请填写订单信息</div>
+
+    <form id="orderForm" onsubmit="return handleSubmit(event)">
+      <div class="form-group">
+        <label>开单人 *</label>
+        <select id="creator" required>
+          <option value="">选择开单人</option>
+          <option value="波比">波比</option>
+          <option value="周众（孙尚香人柱力）">周众</option>
+          <option value="迷人">迷人</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>选择版本 *</label>
+        <select id="plan" required>
+          <option value="">选择版本</option>
+          <option value="个人高阶版">个人高阶版 · ¥75</option>
+          <option value="个人旗舰版">个人旗舰版 · ¥120</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>用户手机号 *</label>
+        <input type="tel" id="phone" placeholder="输入11位手机号" maxlength="11" required pattern="\d{11}">
+      </div>
+      <button class="submit-btn" type="submit" id="submitBtn">确认并开通</button>
+    </form>
+
+    <div class="hint">填写后自动创建拟定订单，跳转至会员开通页面</div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="spinner"></div>
+</div>
+
+<script>
+const COZE_URL = 'https://code.coze.cn/subscription-paywall?dist_channel=10002&distributor_id=20024';
+const ORDERS_API = '/api/orders';
+const VISITS_API = '/api/coze-redirect';
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  const creator = document.getElementById('creator').value;
+  const plan = document.getElementById('plan').value;
+  const phone = document.getElementById('phone').value.trim();
+  if (!creator || !plan || !phone) return false;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  document.getElementById('overlay').classList.add('show');
+
+  try {
+    // 1. Create draft order
+    const prices = { '个人高阶版': 75, '个人旗舰版': 120 };
+    const res = await fetch(ORDERS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        creator, plan, phone,
+        amount: prices[plan] || 0,
+        status: 'draft'
+      })
+    });
+    if (!res.ok) throw new Error('Order failed');
+
+    // 2. Log visit (fire and forget)
+    fetch(VISITS_API, { method: 'POST' }).catch(() => {});
+
+    // 3. Redirect to Coze
+    window.location.href = COZE_URL;
+  } catch (err) {
+    alert('提交失败，请重试');
+    btn.disabled = false;
+    document.getElementById('overlay').classList.remove('show');
+  }
+  return false;
+}
+</script>
+</body>
+</html>
