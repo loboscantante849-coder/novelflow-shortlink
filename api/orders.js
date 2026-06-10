@@ -244,7 +244,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      const { creator, phone, plan, amount, status } = req.body;
+      const { creator, phone, plan, amount, status, remark } = req.body;
       if (!creator || !phone || !plan) {
         return res.status(400).json({ error: "Missing required fields" });
       }
@@ -259,6 +259,7 @@ module.exports = async function handler(req, res) {
         status: isDraft ? "draft" : "未收货",
         createdAt: new Date().toISOString()
       };
+      if (remark) order.remark = remark;
       orders.push(order);
       await saveOrders(orders);
 
