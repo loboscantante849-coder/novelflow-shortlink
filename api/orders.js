@@ -257,19 +257,21 @@ module.exports = async function handler(req, res) {
       orders.push(order);
       await saveOrders(orders);
 
-      // Sync to Feishu (non-blocking, don't fail order if Feishu errors)
-      writeBitableRecord(order).then(recordId => {
+      // Sync to Feishu (await to ensure Vercel doesn't kill the function)
+      try {
+        const recordId = await writeBitableRecord(order);
         if (recordId) {
-          // Store feishu record_id for future updates
           const idx = orders.findIndex(o => o.id === order.id);
           if (idx !== -1) {
             orders[idx].feishuRecordId = recordId;
-            saveOrders(orders).catch(() => {});
+            await saveOrders(orders);
           }
         }
-      }).catch(e => console.error("[Feishu] Bitable write error:", e.message));
+      } catch (e) { console.error("[Feishu] Bitable write error:", e.message); }
 
-      sendGroupNotification(order, "created").catch(e => console.error("[Feishu] Notification error:", e.message));
+      try {
+        await sendGroupNotification(order, "created");
+      } catch (e) { console.error("[Feishu] Notification error:", e.message); }
 
       return res.status(201).json(order);
     }
@@ -286,10 +288,10 @@ module.exports = async function handler(req, res) {
       await saveOrders(orders);
 
       // Update Feishu Bitable
-      updateBitableRecord(id, { "状态": status }).catch(e => console.error("[Feishu] Bitable update error:", e.message));
+      try { await updateBitableRecord(id, { "状态": status }); } catch (e) { console.error("[Feishu] Bitable update error:", e.message); }
 
       // Notify group
-      sendGroupNotification(order, "status_changed").catch(e => console.error("[Feishu] Notification error:", e.message));
+      try { await sendGroupNotification(order, "status_changed"); } catch (e) { console.error("[Feishu] Notification error:", e.message); }
 
       return res.status(200).json(order);
     }
