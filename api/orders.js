@@ -2,6 +2,39 @@ const KV_URL = process.env.KV_REST_API_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 const KV_KEY = "nf_orders";
 
+// Feishu config
+const FEISHU_APP_ID = process.env.FEISHU_APP_ID || "";
+const FEISHU_APP_SECRET = process.env.FEISHU_APP_SECRET || "";
+const FEISHU_BITABLE_TOKEN = "H0dlbqN5qageHQscTTEc9aqKnmc";
+const FEISHU_TABLE_ID = "tbllSBgcrMDvJtDk";
+const FEISHU_CHAT_ID = "oc_864d8e4c92eb2704057c95676e11e5a5";
+
+let _feishuToken = null;
+let _feishuTokenExp = 0;
+
+const PLAN_INFO = {
+  '个人高阶版': { price: 75, cost: 45 },
+  '个人旗舰版': { price: 120, cost: 89 },
+  '个人尊享版': { price: 0, cost: 0 }
+};
+const FEE_RATE = {
+  '波比': 0.016,
+  '周众（孙尚香人柱力）': 0.006,
+  '周总': 0.006,
+  '迷人': 0.006
+};
+const MR_RATE = 0.30;
+
+function calcBreakdown(amount, creator, plan) {
+  const cost = (PLAN_INFO[plan] && PLAN_INFO[plan].cost) || 0;
+  const feeRate = FEE_RATE[creator] || 0;
+  const fee = amount * feeRate;
+  const profit = amount - cost - fee;
+  const mrCut = profit > 0 ? profit * MR_RATE : 0;
+  const myIncome = profit > 0 ? profit * (1 - MR_RATE) : 0;
+  return { cost, fee, feeRate, profit, mrCut, myIncome };
+}
+
 async function kv(command, ...args) {
   const res = await fetch(`${KV_URL}/${command}/${args.join("/")}`, {
     headers: { Authorization: `Bearer ${KV_TOKEN}` }
@@ -19,9 +52,184 @@ async function saveOrders(orders) {
   await kv("set", KV_KEY, JSON.stringify(orders));
 }
 
+// ---- Feishu API helpers ----
+
+async function getFeishuToken() {
+  if (_feishuToken && Date.now() < _feishuTokenExp) return _feishuToken;
+  if (!FEISHU_APP_ID || !FEISHU_APP_SECRET) {
+    console.log("[Feishu] No app credentials, skipping");
+    return null;
+  }
+  try {
+    const res = await fetch("https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ app_id: FEISHU_APP_ID, app_secret: FEISHU_APP_SECRET })
+    });
+    const data = await res.json();
+    if (data.code !== 0) {
+      console.error("[Feishu] Token error:", data.msg);
+      return null;
+    }
+    _feishuToken = data.tenant_access_token;
+    _feishuTokenExp = Date.now() + (data.expire - 60) * 1000;
+    return _feishuToken;
+  } catch (e) {
+    console.error("[Feishu] Token fetch failed:", e.message);
+    return null;
+  }
+}
+
+async function feishuRequest(method, path, body) {
+  const token = await getFeishuToken();
+  if (!token) return null;
+  try {
+    const opts = {
+      method,
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(`https://open.feishu.cn${path}`, opts);
+    const data = await res.json();
+    if (data.code !== 0) {
+      console.error(`[Feishu] ${method} ${path} error:`, data.msg);
+      return null;
+    }
+    return data;
+  } catch (e) {
+    console.error(`[Feishu] ${method} ${path} failed:`, e.message);
+    return null;
+  }
+}
+
+// Write a record to Feishu Bitable
+async function writeBitableRecord(order) {
+  const b = calcBreakdown(order.amount, order.creator, order.plan);
+  const record = {
+    fields: {
+      "开单人": order.creator,
+      "手机号": order.phone,
+      "版本": order.plan,
+      "金额": order.amount,
+      "成本": b.cost,
+      "手续费": Math.round(b.fee * 100) / 100,
+      "可分配利润": Math.round(b.profit * 100) / 100,
+      "迷人30%": Math.round(b.mrCut * 100) / 100,
+      "个人70%": Math.round(b.myIncome * 100) / 100,
+      "状态": order.status,
+      "下单时间": order.createdAt ? Math.floor(new Date(order.createdAt).getTime() / 1000) : Math.floor(Date.now() / 1000),
+      "订单ID": order.id
+    }
+  };
+
+  const result = await feishuRequest(
+    "POST",
+    `/open-apis/bitable/v1/apps/${FEISHU_BITABLE_TOKEN}/tables/${FEISHU_TABLE_ID}/records`,
+    { records: [record] }
+  );
+
+  if (result) {
+    const recordId = result.data?.records?.[0]?.record_id;
+    console.log(`[Feishu] Bitable record created: ${recordId}`);
+    return recordId;
+  }
+  return null;
+}
+
+// Update a record in Feishu Bitable by order ID
+async function updateBitableRecord(orderId, updates) {
+  // First find the record by orderId
+  const searchResult = await feishuRequest(
+    "POST",
+    `/open-apis/bitable/v1/apps/${FEISHU_BITABLE_TOKEN}/tables/${FEISHU_TABLE_ID}/records/search`,
+    { filter: { conditions: [{ field_name: "订单ID", operator: "is", value: [orderId] }] } }
+  );
+
+  if (!searchResult || !searchResult.data?.items?.length) {
+    console.log(`[Feishu] Record not found for orderId: ${orderId}`);
+    return false;
+  }
+
+  const recordId = searchResult.data.items[0].record_id;
+  const result = await feishuRequest(
+    "PUT",
+    `/open-apis/bitable/v1/apps/${FEISHU_BITABLE_TOKEN}/tables/${FEISHU_TABLE_ID}/records/${recordId}`,
+    { fields: updates }
+  );
+
+  if (result) {
+    console.log(`[Feishu] Bitable record ${recordId} updated`);
+    return true;
+  }
+  return false;
+}
+
+// Send a notification card to Feishu group
+async function sendGroupNotification(order, action) {
+  const b = calcBreakdown(order.amount, order.creator, order.plan);
+  const displayName = order.creator;
+
+  let actionText = "";
+  let headerColor = "";
+  if (action === "created") {
+    actionText = "🆕 新订单";
+    headerColor = "blue";
+  } else if (action === "status_changed") {
+    const statusIcon = order.status === "已交付" ? "💰" : order.status === "已收货" ? "✅" : "📦";
+    actionText = `${statusIcon} 状态变更为「${order.status}」`;
+    headerColor = order.status === "已交付" ? "green" : order.status === "已收货" ? "turquoise" : "orange";
+  }
+
+  const card = {
+    config: { wide_screen_mode: true },
+    header: {
+      title: { tag: "plain_text", content: `${actionText} - ${displayName}` },
+      template: headerColor
+    },
+    elements: [
+      {
+        tag: "div",
+        fields: [
+          { is_short: true, text: { tag: "lark_md", content: `**版本**\n${order.plan}` } },
+          { is_short: true, text: { tag: "lark_md", content: `**金额**\n¥${order.amount}` } },
+          { is_short: true, text: { tag: "lark_md", content: `**手机号**\n${order.phone}` } },
+          { is_short: true, text: { tag: "lark_md", content: `**状态**\n${order.status}` } }
+        ]
+      },
+      { tag: "hr" },
+      {
+        tag: "div",
+        fields: [
+          { is_short: true, text: { tag: "lark_md", content: `**成本**\n¥${b.cost}` } },
+          { is_short: true, text: { tag: "lark_md", content: `**手续费**\n¥${b.fee.toFixed(2)}` } },
+          { is_short: true, text: { tag: "lark_md", content: `**迷人30%**\n¥${b.mrCut.toFixed(2)}` } },
+          { is_short: true, text: { tag: "lark_md", content: `**个人70%**\n¥${b.myIncome.toFixed(2)}` } }
+        ]
+      }
+    ]
+  };
+
+  const result = await feishuRequest(
+    "POST",
+    "/open-apis/im/v1/messages?receive_id_type=chat_id",
+    {
+      receive_id: FEISHU_CHAT_ID,
+      msg_type: "interactive",
+      content: JSON.stringify(card)
+    }
+  );
+
+  if (result) {
+    console.log(`[Feishu] Group notification sent for order ${order.id}`);
+  }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
 
@@ -48,6 +256,21 @@ module.exports = async function handler(req, res) {
       };
       orders.push(order);
       await saveOrders(orders);
+
+      // Sync to Feishu (non-blocking, don't fail order if Feishu errors)
+      writeBitableRecord(order).then(recordId => {
+        if (recordId) {
+          // Store feishu record_id for future updates
+          const idx = orders.findIndex(o => o.id === order.id);
+          if (idx !== -1) {
+            orders[idx].feishuRecordId = recordId;
+            saveOrders(orders).catch(() => {});
+          }
+        }
+      }).catch(e => console.error("[Feishu] Bitable write error:", e.message));
+
+      sendGroupNotification(order, "created").catch(e => console.error("[Feishu] Notification error:", e.message));
+
       return res.status(201).json(order);
     }
 
@@ -61,6 +284,13 @@ module.exports = async function handler(req, res) {
       if (!order) return res.status(404).json({ error: "Order not found" });
       order.status = status;
       await saveOrders(orders);
+
+      // Update Feishu Bitable
+      updateBitableRecord(id, { "状态": status }).catch(e => console.error("[Feishu] Bitable update error:", e.message));
+
+      // Notify group
+      sendGroupNotification(order, "status_changed").catch(e => console.error("[Feishu] Notification error:", e.message));
+
       return res.status(200).json(order);
     }
 
