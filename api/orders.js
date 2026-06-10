@@ -174,7 +174,10 @@ async function sendGroupNotification(order, action) {
 
   let actionText = "";
   let headerColor = "";
-  if (action === "created") {
+  if (action === "draft") {
+    actionText = "📝 拟定订单（待确认）";
+    headerColor = "orange";
+  } else if (action === "created") {
     actionText = "🆕 新订单";
     headerColor = "blue";
   } else if (action === "status_changed") {
@@ -273,6 +276,11 @@ module.exports = async function handler(req, res) {
 
         try {
           await sendGroupNotification(order, "created");
+        } catch (e) { console.error("[Feishu] Notification error:", e.message); }
+      } else {
+        // Draft order: send notification only
+        try {
+          await sendGroupNotification(order, "draft");
         } catch (e) { console.error("[Feishu] Notification error:", e.message); }
       }
 

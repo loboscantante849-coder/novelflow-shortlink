@@ -68,11 +68,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       </div>
       <div class="form-group">
         <label>选择版本 *</label>
-        <select id="plan" required>
+        <select id="plan" required onchange="autoFillPrice()">
           <option value="">选择版本</option>
-          <option value="个人高阶版">个人高阶版 · ¥75</option>
-          <option value="个人旗舰版">个人旗舰版 · ¥120</option>
+          <option value="个人高阶版" data-price="75">个人高阶版 · ¥75</option>
+          <option value="个人旗舰版" data-price="120">个人旗舰版 · ¥120</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label>订单金额 (元) *</label>
+        <input type="number" id="amount" placeholder="选版本后自动填入" step="1" required>
       </div>
       <div class="form-group">
         <label>用户手机号 *</label>
@@ -94,12 +98,20 @@ const COZE_URL = 'https://code.coze.cn/subscription-paywall?dist_channel=10002&d
 const ORDERS_API = '/api/orders';
 const VISITS_API = '/api/coze-redirect';
 
+function autoFillPrice() {
+  const sel = document.getElementById('plan');
+  const opt = sel.options[sel.selectedIndex];
+  const price = opt ? opt.dataset.price : '';
+  document.getElementById('amount').value = price || '';
+}
+
 async function handleSubmit(e) {
   e.preventDefault();
   const creator = document.getElementById('creator').value;
   const plan = document.getElementById('plan').value;
+  const amount = document.getElementById('amount').value;
   const phone = document.getElementById('phone').value.trim();
-  if (!creator || !plan || !phone) return false;
+  if (!creator || !plan || !amount || !phone) return false;
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -113,7 +125,7 @@ async function handleSubmit(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         creator, plan, phone,
-        amount: prices[plan] || 0,
+        amount: parseFloat(amount),
         status: 'draft'
       })
     });
