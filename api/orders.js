@@ -28,14 +28,15 @@ const FEE_RATE = {
 };
 const MR_RATE = 0.30;
 
-function calcBreakdown(amount, creator, plan, costOverride) {
+function calcBreakdown(amount, creator, plan, costOverride, mrRateOverride) {
   const cost = costOverride !== undefined ? costOverride : ((PLAN_INFO[plan] && PLAN_INFO[plan].cost) || 0);
   const feeRate = FEE_RATE[creator] || 0;
   const fee = amount * feeRate;
   const profit = amount - cost - fee;
-  const mrCut = profit > 0 ? profit * MR_RATE : 0;
-  const myIncome = profit > 0 ? profit * (1 - MR_RATE) : 0;
-  return { cost, fee, feeRate, profit, mrCut, myIncome };
+  const mrRate = mrRateOverride !== undefined ? mrRateOverride : MR_RATE;
+  const mrCut = profit > 0 ? profit * mrRate : 0;
+  const myIncome = profit > 0 ? profit * (1 - mrRate) : 0;
+  return { cost, fee, feeRate, profit, mrCut, myIncome, mrRate };
 }
 
 async function kv(command, ...args) {
@@ -110,7 +111,7 @@ async function feishuRequest(method, path, body) {
 
 // Write a record to Feishu Bitable
 async function writeBitableRecord(order) {
-  const b = calcBreakdown(order.amount, order.creator, order.plan, order.cost);
+  const b = calcBreakdown(order.amount, order.creator, order.plan, order.cost, order.mrRate);
   const record = {
     fields: {
       "开单人": order.creator,
@@ -172,7 +173,7 @@ async function updateBitableRecord(orderId, updates) {
 
 // Send a notification card to Feishu group
 async function sendGroupNotification(order, action) {
-  const b = calcBreakdown(order.amount, order.creator, order.plan, order.cost);
+  const b = calcBreakdown(order.amount, order.creator, order.plan, order.cost, order.mrRate);
   const displayName = order.creator;
 
   let actionText = "";
