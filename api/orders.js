@@ -16,8 +16,8 @@ const PLAN_INFO = {
   '个人高阶版': { price: 70, cost: 45 },
   '个人旗舰版': { price: 120, cost: 89 },
   '个人尊享版': { price: 0, cost: 0 },
-  '高阶年卡': { price: 0, cost: 739 },
-  '旗舰年卡': { price: 0, cost: 0 }
+  '高阶年卡': { price: 0, cost: 739, mrRate: 0.2 },
+  '旗舰年卡': { price: 0, cost: 0, mrRate: 0.2 }
 };
 const FEE_RATE = {
   '波比': 0.016,
@@ -33,7 +33,7 @@ function calcBreakdown(amount, creator, plan, costOverride, mrRateOverride) {
   const feeRate = FEE_RATE[creator] || 0;
   const fee = amount * feeRate;
   const profit = amount - cost - fee;
-  const mrRate = mrRateOverride !== undefined ? mrRateOverride : MR_RATE;
+  const mrRate = mrRateOverride !== undefined ? mrRateOverride : ((PLAN_INFO[plan] && PLAN_INFO[plan].mrRate) || MR_RATE);
   const mrCut = profit > 0 ? profit * mrRate : 0;
   const myIncome = profit > 0 ? profit * (1 - mrRate) : 0;
   return { cost, fee, feeRate, profit, mrCut, myIncome, mrRate };
