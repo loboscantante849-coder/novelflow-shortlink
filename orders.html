@@ -521,6 +521,10 @@ function getFilteredOrders() {
     const search = (document.getElementById('phoneSearch').value || '').trim();
     if (search && !o.phone.includes(search)) return false;
     return true;
+  }).sort((a, b) => {
+    const ta = new Date(a.createdAt).getTime() || 0;
+    const tb = new Date(b.createdAt).getTime() || 0;
+    return tb - ta; // 最新下单在前
   });
 }
 
