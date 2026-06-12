@@ -203,7 +203,7 @@ async function sendGroupNotification(order, action) {
         fields: [
           { is_short: true, text: { tag: "lark_md", content: `**版本**\n${order.plan}` } },
           { is_short: true, text: { tag: "lark_md", content: `**金额**\n¥${order.amount}` } },
-          { is_short: true, text: { tag: "lark_md", content: `**手机号**\n${order.phone}${order.isAdOrder===\"是\"?\" 📢投流\":\"\"}` } },
+          { is_short: true, text: { tag: "lark_md", content: `**手机号**\n${order.phone}${order.isAdOrder === "是" ? " 📢投流" : ""}` } },
           { is_short: true, text: { tag: "lark_md", content: `**状态**\n${order.status}` } }
         ]
       },
