@@ -392,8 +392,15 @@ function calcBreakdown(amount, creator, plan, costOverride, mrRateOverride) {
 function normalizeOrders(arr) {
   return arr.map(o => {
     o.amount = Number(o.amount) || 0;
-    o.cost = Number(o.cost) || 0;
+    const planDefault = PLAN_INFO[o.plan];
+    if (o.cost === undefined || o.cost === null || o.cost === '') {
+      o.cost = (planDefault && planDefault.cost) || 0;
+    } else {
+      o.cost = Number(o.cost) || 0;
+      if (o.cost === 0 && planDefault && planDefault.cost) o.cost = planDefault.cost;
+    }
     if (o.mrRate !== undefined) o.mrRate = Number(o.mrRate);
+    else if (planDefault && planDefault.mrRate) o.mrRate = planDefault.mrRate;
     return o;
   });
 }
