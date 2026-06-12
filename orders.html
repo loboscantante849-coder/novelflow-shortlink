@@ -379,6 +379,15 @@ function calcBreakdown(amount, creator, plan, costOverride, mrRateOverride) {
   return { cost, fee, feeRate, profit, mrCut, myIncome, mrRate };
 }
 
+function normalizeOrders(arr) {
+  return arr.map(o => {
+    o.amount = Number(o.amount) || 0;
+    o.cost = Number(o.cost) || 0;
+    if (o.mrRate !== undefined) o.mrRate = Number(o.mrRate);
+    return o;
+  });
+}
+
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('summaryPanel').style.display = 'none';
@@ -709,7 +718,7 @@ function renderSummary() {
 async function loadSummary() {
   try {
     const res = await fetch(API);
-    orders = await res.json();
+    orders = normalizeOrders(await res.json());
   } catch (e) {
     orders = [];
   }
@@ -806,7 +815,7 @@ let dailySelectedCreator = 'all';
 function loadDaily() {
   if (!orders.length) {
     fetch(API).then(r => r.json()).then(data => {
-      orders = data;
+      orders = normalizeOrders(data);
       renderDailyTabs();
       renderDaily();
     }).catch(() => {});
