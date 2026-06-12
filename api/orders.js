@@ -13,8 +13,8 @@ let _feishuToken = null;
 let _feishuTokenExp = 0;
 
 const PLAN_INFO = {
-  '个人高阶版': { price: 70, cost: 45 },
-  '个人旗舰版': { price: 120, cost: 89 },
+  '个人高阶版': { price: 75, cost: 45 },
+  '个人旗舰版': { price: 130, cost: 89 },
   '个人尊享版': { price: 0, cost: 0 },
   '高阶年卡': { price: 0, cost: 739, mrRate: 0.2 },
   '旗舰年卡': { price: 0, cost: 0, mrRate: 0.2 }
@@ -125,7 +125,8 @@ async function writeBitableRecord(order) {
       "个人70%": Math.round(b.myIncome * 100) / 100,
       "状态": order.status,
       "下单时间": order.createdAt ? new Date(order.createdAt).getTime() : Date.now(),
-      "订单ID": order.id
+      "订单ID": order.id,
+      "是否投流": order.isAdOrder || "否"
     }
   };
 
@@ -202,7 +203,7 @@ async function sendGroupNotification(order, action) {
         fields: [
           { is_short: true, text: { tag: "lark_md", content: `**版本**\n${order.plan}` } },
           { is_short: true, text: { tag: "lark_md", content: `**金额**\n¥${order.amount}` } },
-          { is_short: true, text: { tag: "lark_md", content: `**手机号**\n${order.phone}` } },
+          { is_short: true, text: { tag: "lark_md", content: `**手机号**\n${order.phone}${order.isAdOrder===\"是\"?\" 📢投流\":\"\"}` } },
           { is_short: true, text: { tag: "lark_md", content: `**状态**\n${order.status}` } }
         ]
       },
@@ -263,6 +264,7 @@ module.exports = async function handler(req, res) {
         createdAt: new Date().toISOString()
       };
       if (remark) order.remark = remark;
+      if (req.body.isAdOrder) order.isAdOrder = req.body.isAdOrder;
       orders.push(order);
       await saveOrders(orders);
 

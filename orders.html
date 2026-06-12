@@ -249,14 +249,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <label>选择版本</label>
           <div class="plan-options">
             <label class="plan-option">
-              <input type="radio" name="plan" value="个人高阶版" data-price="70" data-cost="45">
+              <input type="radio" name="plan" value="个人高阶版" data-price="75" data-cost="45">
               <span class="plan-name">个人高阶版</span>
-              <span class="plan-price">¥70</span>
+              <span class="plan-price">¥75</span>
             </label>
             <label class="plan-option">
-              <input type="radio" name="plan" value="个人旗舰版" data-price="120" data-cost="89">
+              <input type="radio" name="plan" value="个人旗舰版" data-price="130" data-cost="89">
               <span class="plan-name">个人旗舰版</span>
-              <span class="plan-price">¥120</span>
+              <span class="plan-price">¥130</span>
             </label>
             <label class="plan-option">
               <input type="radio" name="plan" value="高阶年卡" data-price="0" data-cost="0">
@@ -285,6 +285,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
             <option value="">无</option>
             <option value="波比垫资给周">波比垫资给周</option>
             <option value="迷人垫资给周">迷人垫资给周</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>是否投流单</label>
+          <select id="isAdOrder">
+            <option value="否">否</option>
+            <option value="是">是（闲鱼投流）</option>
           </select>
         </div>
         <button class="submit-btn" id="submitBtn" onclick="submitOrder()">提交订单</button>
@@ -334,8 +341,8 @@ let statusFilter = 'all';
 loadSummary();
 
 const PLAN_INFO = {
-  '个人高阶版': { price: 70, cost: 45 },
-  '个人旗舰版': { price: 120, cost: 89 },
+  '个人高阶版': { price: 75, cost: 45 },
+  '个人旗舰版': { price: 130, cost: 89 },
   '个人尊享版': { price: 0, cost: 0 },
   '高阶年卡': { price: 0, cost: 739, mrRate: 0.2 },
   '旗舰年卡': { price: 0, cost: 0, mrRate: 0.2 }
@@ -445,7 +452,7 @@ async function submitOrder() {
     const remark = document.getElementById('remark').value;
     const res = await fetch(API, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ creator, phone, plan: planEl.value, amount: parseFloat(amount), remark: remark || undefined })
+      body: JSON.stringify({ creator, phone, plan: planEl.value, amount: parseFloat(amount), remark: remark || undefined, isAdOrder: document.getElementById('isAdOrder').value })
     });
     if (!res.ok) throw new Error(await res.text());
     showToast('订单提交成功！');
@@ -454,6 +461,7 @@ async function submitOrder() {
     document.querySelectorAll('input[name="plan"]').forEach(r => r.checked = false);
     document.getElementById('amount').value = '';
     document.getElementById('remark').value = '';
+    document.getElementById('isAdOrder').value = '否';
     closeAddModal();
   } catch (e) {
     showToast('提交失败: ' + e.message, true);
@@ -679,7 +687,7 @@ function renderSummary() {
         <div class="order-head">
           <span class="order-plan">${statusIcon} ${o.plan}</span>
           <span class="order-amount">¥${o.amount.toFixed(0)}</span>${o.status!=='已交付'?'<span style="font-size:10px;color:#ff6b6b;background:#2a1515;padding:3px 8px;border-radius:4px;margin-left:6px;white-space:nowrap">⚠️ 请确认交付</span>':''}</div>
-        <div class="order-phone">📱 ${o.phone}</div>
+        <div class="order-phone">📱 ${o.phone}${o.isAdOrder==='是'?'<span style="font-size:10px;color:#ff9800;background:#2a1a0a;padding:3px 8px;border-radius:4px;margin-left:6px">📢 投流单</span>':''}</div>
         <div class="breakdown">
           <div class="bk-row cost"><span>成本</span><span>-¥${b.cost.toFixed(0)}</span></div>
           <div class="bk-row fee"><span>咸鱼手续费(${(b.feeRate*100).toFixed(1)}%) 拨出</span><span>-¥${b.fee.toFixed(2)}</span></div>
@@ -923,7 +931,7 @@ function renderDaily() {
             ${o.status!=='已交付'?'<span style="font-size:10px;color:#ff6b6b;background:#2a1515;padding:3px 8px;border-radius:4px;margin-left:6px;white-space:nowrap">⚠️ 请确认交付</span>':''}
           </div>
         </div>
-        <div class="order-phone">📱 ${o.phone}</div>
+        <div class="order-phone">📱 ${o.phone}${o.isAdOrder==='是'?'<span style="font-size:10px;color:#ff9800;background:#2a1a0a;padding:3px 8px;border-radius:4px;margin-left:6px">📢 投流单</span>':''}</div>
         <div class="status-row">
           <span class="status-label">状态</span>
           <select class="status-select" onchange="updateStatus('${o.id}', this.value)" ${o.status==='已交付'?'disabled':''}>
