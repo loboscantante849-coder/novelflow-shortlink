@@ -330,6 +330,9 @@ const API = '/api/orders';
 let orders = [];
 let statusFilter = 'all';
 
+// Page init: load data immediately
+loadSummary();
+
 const PLAN_INFO = {
   '个人高阶版': { price: 70, cost: 45 },
   '个人旗舰版': { price: 120, cost: 89 },
