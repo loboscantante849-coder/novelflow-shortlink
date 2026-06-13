@@ -13,8 +13,8 @@ let _feishuToken = null;
 let _feishuTokenExp = 0;
 
 const PLAN_INFO = {
-  '个人高阶版': { price: 75, cost: 45 },
-  '个人旗舰版': { price: 130, cost: 89 },
+  '个人高阶版': { price: 70, cost: 45 },
+  '个人旗舰版': { price: 125, cost: 89 },
   '个人尊享版': { price: 0, cost: 0 },
   '高阶年卡': { price: 0, cost: 739, mrRate: 0.2 },
   '旗舰年卡': { price: 0, cost: 0, mrRate: 0.2 }
