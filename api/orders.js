@@ -264,6 +264,8 @@ module.exports = async function handler(req, res) {
         createdAt: new Date().toISOString()
       };
       if (remark) order.remark = remark;
+      if (req.body.cost !== undefined) order.cost = req.body.cost;
+      if (req.body.mrRate !== undefined) order.mrRate = req.body.mrRate;
       if (req.body.isAdOrder) order.isAdOrder = req.body.isAdOrder;
       orders.push(order);
       await saveOrders(orders);
@@ -306,6 +308,10 @@ module.exports = async function handler(req, res) {
       const wasDraft = order.status === 'draft';
       if (status) order.status = status;
       if (remark !== undefined) order.remark = remark;
+      if (req.body.plan) order.plan = req.body.plan;
+      if (req.body.amount !== undefined) order.amount = parseFloat(req.body.amount);
+      if (req.body.cost !== undefined) order.cost = req.body.cost;
+      if (req.body.mrRate !== undefined) order.mrRate = req.body.mrRate;
       await saveOrders(orders);
 
       // If confirming a draft → 未收货, do first-time Feishu sync
